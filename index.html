@@ -1,0 +1,1965 @@
+<title>Rumi Portal — AEO View (Prototype)</title>
+<style>
+  :root{
+    --primary:#0E1F4C;
+    --primary-light:#2440A0;
+    --accent:#E86835;
+    --bg:#FFFFFF;
+    --fg:#1D1F24;
+    --muted:#F3F4F5;
+    --muted-fg:#6B7280;
+    --border:#E2E4E8;
+    --success:#22C55E;
+    --warning:#F59E0B;
+    --error:#DC2626;
+    --shadow-soft:0 4px 24px -4px rgba(29,31,36,0.06);
+    --shadow-medium:0 12px 48px -8px rgba(29,31,36,0.10);
+    --canvas:#FAFAFB;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--canvas);
+    color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  ::selection{ background: color-mix(in srgb, var(--accent) 30%, transparent); }
+  a{ color: inherit; }
+  button{ font-family:inherit; }
+
+  .app{ display:flex; flex-direction:column; min-height:100vh; }
+
+  /* ---------- top nav ---------- */
+  .navbar{
+    height:64px; flex:0 0 64px;
+    background:var(--primary);
+    color:#fff;
+    display:flex; align-items:center;
+    padding:0 24px;
+    gap:20px;
+    position:sticky; top:0; z-index:20;
+  }
+  .navbar .brand{ display:flex; align-items:center; gap:10px; margin-right:8px; }
+  .navbar .brand .mark{
+    width:28px;height:28px;border-radius:50%;
+    background:#fff;
+    display:flex;align-items:center;justify-content:center;
+    flex:0 0 28px;
+  }
+  .navbar .brand .mark svg{ width:18px;height:18px; }
+  .navbar .brand span{ font-weight:600; font-size:16px; letter-spacing:.1px; }
+
+  .navlinks{ display:flex; align-items:center; gap:2px; }
+  .navlinks button{
+    appearance:none; border:0; cursor:pointer;
+    background:transparent; color:rgba(255,255,255,.7);
+    padding:8px 16px; border-radius:8px; font-size:14px; font-weight:500;
+    display:flex; align-items:center; gap:8px;
+    transition:background .15s ease,color .15s ease;
+  }
+  .navlinks button:hover{ background:rgba(255,255,255,.1); color:#fff; }
+  .navlinks button.active{ background:rgba(255,255,255,.2); color:#fff; }
+  .navlinks button .badge-count{
+    background:var(--accent); color:#fff; font-size:10px; font-weight:700;
+    padding:1px 6px; border-radius:999px; line-height:1.4;
+  }
+
+  .navbar .spacer{ flex:1; }
+
+  .visibility-toggle{
+    display:flex; align-items:center; background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.18); border-radius:999px; padding:2px;
+    gap:2px;
+  }
+  .visibility-toggle button{
+    appearance:none; border:0; cursor:pointer; background:transparent;
+    color:rgba(255,255,255,.65); font-size:12px; font-weight:600;
+    padding:5px 12px; border-radius:999px; transition:all .15s ease;
+  }
+  .visibility-toggle button.active{ background:#fff; color:var(--primary); }
+  .visibility-toggle button:focus-visible{ outline:2px solid #fff; outline-offset:1px; }
+
+  .role-toggle{
+    display:flex; align-items:center; background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.18); border-radius:999px; padding:2px;
+    gap:2px;
+  }
+  .role-toggle button{
+    appearance:none; border:0; cursor:pointer; background:transparent;
+    color:rgba(255,255,255,.65); font-size:12px; font-weight:600;
+    padding:5px 12px; border-radius:999px; transition:all .15s ease;
+  }
+  .role-toggle button.active{ background:var(--accent); color:#fff; }
+  .role-toggle button:focus-visible{ outline:2px solid #fff; outline-offset:1px; }
+
+  .navbar .role-pill{
+    font-size:12px; font-weight:600; color:#fff;
+    background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.2);
+    padding:4px 10px; border-radius:999px;
+    letter-spacing:.3px; white-space:nowrap;
+  }
+  .navbar .user{
+    display:flex; align-items:center; gap:10px;
+    padding-left:16px; margin-left:4px;
+    border-left:1px solid rgba(255,255,255,.18);
+  }
+  .navbar .user .name{ font-size:13px; color:rgba(255,255,255,.85); font-weight:500; }
+  .navbar .user .role{ font-size:11px; color:rgba(255,255,255,.55); }
+  .navbar .avatar{
+    width:30px;height:30px;border-radius:50%;
+    background:var(--accent); color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px; font-weight:700; flex:0 0 30px;
+  }
+  .navbar .logout{
+    background:transparent;border:0;color:rgba(255,255,255,.55);
+    cursor:pointer; font-size:13px; padding:6px 8px; border-radius:6px;
+  }
+  .navbar .logout:hover{ color:#fff; background:rgba(255,255,255,.08); }
+  .navbar button:focus-visible, .navbar .logout:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
+  .logout-icon{ display:none; font-size:16px; }
+
+  /* ---------- bottom tab bar (mobile only) ---------- */
+  .bottom-nav{
+    display:none;
+    position:fixed; bottom:0; left:0; right:0; z-index:20;
+    background:var(--primary); border-top:1px solid rgba(255,255,255,.12);
+    box-shadow:0 -4px 16px -4px rgba(0,0,0,.2);
+    padding-bottom:env(safe-area-inset-bottom, 0);
+  }
+  .bottom-nav .bn-row{ display:flex; }
+  .bottom-nav button{
+    flex:1; appearance:none; border:0; cursor:pointer; background:transparent;
+    color:rgba(255,255,255,.65); padding:8px 4px 10px;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    font-size:10.5px; font-weight:600; position:relative;
+  }
+  .bottom-nav button.active{ color:#fff; }
+  .bottom-nav .bn-icon{ font-size:19px; line-height:1; }
+  .bottom-nav .badge-count{
+    position:absolute; top:2px; right:calc(50% - 20px);
+    background:var(--accent); color:#fff; font-size:9px; font-weight:700;
+    padding:1px 5px; border-radius:999px; line-height:1.4;
+  }
+
+  /* ---------- breadcrumb / shell ---------- */
+  .shell{ flex:1; width:100%; }
+  .container{ max-width:1180px; margin:0 auto; padding:32px 32px 64px; }
+
+  .crumbs{
+    display:flex; align-items:center; gap:6px;
+    font-size:13px; color:var(--muted-fg); margin-bottom:20px;
+  }
+  .crumbs button{
+    background:none;border:0;cursor:pointer;color:var(--muted-fg);
+    font-size:13px; padding:2px 4px; border-radius:4px;
+  }
+  .crumbs button:hover{ color:var(--primary); text-decoration:underline; }
+  .crumbs .current{ color:var(--fg); font-weight:600; }
+  .crumbs .sep{ opacity:.5; }
+
+  .page-head{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    gap:24px; margin-bottom:24px; flex-wrap:wrap;
+  }
+  .page-head h1{
+    font-size:30px; font-weight:300; margin:0 0 6px; letter-spacing:-.2px;
+  }
+  .page-head p{ margin:0; color:var(--muted-fg); font-size:14px; max-width:64ch; }
+  .page-head .actions{ display:flex; gap:10px; }
+
+  .btn{
+    appearance:none; cursor:pointer; border-radius:8px; font-size:13.5px; font-weight:600;
+    padding:9px 16px; border:1px solid transparent; display:inline-flex; align-items:center; gap:8px;
+    transition:filter .15s ease, background .15s ease;
+  }
+  .btn-primary{ background:var(--primary); color:#fff; }
+  .btn-primary:hover{ filter:brightness(1.12); }
+  .btn-accent{ background:var(--accent); color:#fff; }
+  .btn-accent:hover{ filter:brightness(1.08); }
+  .btn-ghost{ background:transparent; color:var(--fg); border-color:var(--border); }
+  .btn-ghost:hover{ background:var(--muted); }
+  .btn-sm{ padding:6px 12px; font-size:12.5px; }
+  .btn:focus-visible{ outline:2px solid var(--primary-light); outline-offset:2px; }
+
+  /* ---------- context chips (context-before-numbers) ---------- */
+  .context-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+  .context-chip{
+    display:flex; align-items:center; gap:6px;
+    font-size:12.5px; color:var(--muted-fg); background:var(--muted);
+    border:1px solid var(--border); border-radius:8px; padding:6px 12px;
+  }
+  .context-chip b{ color:var(--fg); font-weight:600; }
+  .context-chip.warn{ color:#9a6400; background:color-mix(in srgb, var(--warning) 12%, var(--muted)); border-color:color-mix(in srgb, var(--warning) 30%, var(--border)); }
+
+  /* ---------- stat cards ---------- */
+  .stats{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:32px;
+  }
+  .stats.k4{ grid-template-columns:repeat(4,1fr); gap:12px; }
+  .stats.k4 .stat-card{ padding:14px 16px; }
+  .stats.k4 .value{ font-size:24px; }
+  .stats.k4 .label{ margin-bottom:6px; }
+  @media (max-width:900px){ .stats{ grid-template-columns:repeat(2,1fr);} .stats.k4{ grid-template-columns:repeat(2,1fr); gap:12px;} }
+  @media (max-width:560px){ .stats.k4 .stat-card{ padding:16px;} .stats.k4 .value{ font-size:24px;} .stats .stat-card{ padding:16px;} }
+  .stat-card{
+    background:var(--bg); border:1px solid var(--border); border-radius:12px;
+    padding:20px; box-shadow:var(--shadow-soft);
+    border-left:3px solid var(--border);
+  }
+  .stat-card.accent-primary{ border-left-color:var(--primary); }
+  .stat-card.accent-warning{ border-left-color:var(--warning); }
+  .stat-card .label{
+    font-size:12px; color:var(--muted-fg); font-weight:600; text-transform:uppercase; letter-spacing:.5px;
+    margin-bottom:10px;
+  }
+  .stat-card .value{ font-size:30px; font-weight:300; font-variant-numeric:tabular-nums; line-height:1; }
+  .stat-card .value.tile-metric-row{ display:flex; align-items:center; gap:8px; }
+  .stat-card .sub{ font-size:12px; color:var(--muted-fg); margin-top:8px; }
+
+  /* ---------- sections / cards ---------- */
+  .section{ margin-bottom:36px; }
+  .section-head{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:12px; flex-wrap:wrap;
+  }
+  .section-head h2{ font-size:20px; font-weight:600; margin:0; }
+  .section-head .hint{ font-size:13px; color:var(--muted-fg); }
+  .section-link{ color:var(--accent); font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .section-link:hover{ text-decoration:underline; }
+
+  .card{
+    background:var(--bg); border:1px solid var(--border); border-radius:12px;
+    box-shadow:var(--shadow-soft); overflow:hidden;
+  }
+
+  /* ---------- attention cards ---------- */
+  .attn-card{
+    display:flex; gap:14px; align-items:flex-start; padding:18px 20px;
+    border-bottom:1px solid var(--border);
+  }
+  .attn-card:last-child{ border-bottom:0; }
+  .attn-card .icon{
+    position:relative;
+    width:34px;height:34px;border-radius:10px; flex:0 0 34px;
+    display:flex;align-items:center;justify-content:center; font-size:15px;
+  }
+  .attn-card .icon.sev-high{ background:color-mix(in srgb, var(--error) 15%, transparent); color:var(--error); }
+  .attn-card .icon.sev-medium{ background:color-mix(in srgb, var(--warning) 16%, transparent); color:var(--warning); }
+  .attn-card .icon.sev-low{ background:var(--muted); color:var(--muted-fg); }
+  .attn-card .body{ flex:1; }
+  .attn-card .title{ font-size:14.5px; font-weight:600; margin-bottom:3px; }
+  .attn-card .desc{ font-size:13px; color:var(--muted-fg); line-height:1.5; }
+  .attn-empty{ padding:40px 20px; text-align:center; color:var(--muted-fg); font-size:14px; }
+  .attn-empty .big{ font-size:28px; margin-bottom:8px; }
+
+  /* ---------- table (roster) ---------- */
+  .table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  table.roster{ width:100%; border-collapse:collapse; font-size:14px; min-width:520px; }
+  table.roster thead th{
+    text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.5px;
+    color:var(--muted-fg); font-weight:600; padding:12px 20px; background:var(--muted);
+    border-bottom:1px solid var(--border);
+  }
+  table.roster tbody tr{ cursor:pointer; transition:background .12s ease; border-bottom:1px solid var(--border); }
+  table.roster tbody tr:last-child{ border-bottom:0; }
+  table.roster tbody tr:hover{ background:var(--muted); }
+  table.roster tbody tr.static{ cursor:default; }
+  table.roster tbody tr.static:hover{ background:transparent; }
+  table.roster td{ padding:14px 20px; vertical-align:middle; }
+  table.roster td.num{ font-variant-numeric:tabular-nums; }
+  .row-name{ font-weight:600; }
+  .row-sub{ font-size:12px; color:var(--muted-fg); margin-top:2px; }
+  .chevron{ color:var(--muted-fg); float:right; }
+
+  .trend{ display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; margin-left:8px; }
+  .trend.up{ color:var(--success); }
+  .trend.down{ color:var(--error); }
+  .trend.flat{ color:var(--muted-fg); }
+
+  /* ---------- school cards ---------- */
+  .school-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:16px; margin-bottom:20px;
+  }
+  @media (max-width:640px){ .school-grid{ grid-template-columns:1fr; gap:12px; } }
+  .school-card{
+    background:var(--bg); border:1px solid var(--border); border-radius:12px;
+    padding:20px; box-shadow:var(--shadow-soft); cursor:pointer;
+    transition:box-shadow .15s ease; display:flex; flex-direction:column; gap:14px;
+  }
+  .school-card:hover{ box-shadow:var(--shadow-medium); }
+  .sc-name{ font-weight:600; font-size:15px; }
+  .sc-meta{ font-size:12px; color:var(--muted-fg); margin-top:6px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .conn-badge{
+    font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px;
+    background:color-mix(in srgb, var(--success) 14%, transparent); color:#1a7f42;
+  }
+  .conn-badge.warn{ background:color-mix(in srgb, var(--warning) 16%, transparent); color:#9a6400; }
+  .conn-badge.bad{ background:color-mix(in srgb, var(--error) 14%, transparent); color:var(--error); }
+
+  .sc-primary-top{ display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+  .sc-label{ font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--muted-fg); }
+  .sc-metric-row{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .sc-value{ font-size:20px; font-weight:300; font-variant-numeric:tabular-nums; }
+
+  .sc-secondary{
+    display:flex; flex-direction:column; gap:8px;
+    padding-top:12px; border-top:1px solid var(--border); font-size:12.5px;
+  }
+  .sc-secondary .sc-label{ margin:0; }
+  .sc-secondary-val{ font-size:20px; font-weight:300; font-variant-numeric:tabular-nums; color:var(--fg); }
+
+  .sc-foot{ display:flex; align-items:center; justify-content:space-between; }
+  .teacher-badge{
+    font-size:12px; font-weight:600; color:var(--primary);
+    background:color-mix(in srgb, var(--primary) 8%, transparent);
+    padding:3px 10px; border-radius:999px;
+  }
+
+  .needs-support{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:12px; font-weight:600; color:var(--warning);
+  }
+  .needs-support::before{
+    content:""; width:6px; height:6px; border-radius:50%; background:var(--warning); flex:0 0 6px;
+  }
+  .no-flag{ color:var(--muted-fg); font-size:13px; }
+  .masked{ color:var(--muted-fg); font-style:italic; }
+
+  /* on the roster but never registered — a neutral state, not a performance flag */
+  .not-on-rumi{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:12px; font-weight:600; color:var(--muted-fg);
+    background:var(--muted); padding:3px 9px; border-radius:999px;
+  }
+
+  .avatar-sm{
+    width:34px;height:34px;border-radius:50%;
+    background:var(--muted); color:var(--primary);
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:700; flex:0 0 34px;
+  }
+  .name-cell{ display:flex; align-items:center; gap:12px; }
+
+  .filter-row{
+    display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap;
+  }
+  .chip{
+    appearance:none; cursor:pointer; border:1px solid var(--border); background:var(--bg);
+    color:var(--muted-fg); font-size:13px; font-weight:600; padding:7px 14px; border-radius:999px;
+    transition:all .15s ease;
+  }
+  .chip:hover{ background:var(--muted); }
+  .chip.active{ background:var(--primary); color:#fff; border-color:var(--primary); }
+  .chip .n{ opacity:.7; margin-left:4px; }
+
+  .search{
+    flex:1; min-width:180px; max-width:280px;
+    padding:8px 14px; border:1px solid var(--border); border-radius:8px;
+    background:var(--bg); color:var(--fg); font-size:13px;
+  }
+  .search:focus{ outline:2px solid var(--primary-light); outline-offset:1px; }
+
+  /* ---------- lesson plan list ---------- */
+  .lp-list{ list-style:none; margin:0; padding:0; }
+  .lp-list li{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:13px 20px; border-bottom:1px solid var(--border); font-size:13.5px;
+  }
+  .lp-list li:last-child{ border-bottom:0; }
+  .lp-title{ font-weight:600; }
+  .lp-topic{ color:var(--muted-fg); font-size:12px; margin-top:2px; }
+  .lp-count{
+    font-size:11.5px; font-weight:600; color:var(--primary);
+    background:color-mix(in srgb, var(--primary) 10%, transparent);
+    padding:3px 10px; border-radius:999px; white-space:nowrap;
+  }
+
+  /* ---------- rich teacher profile (one example — Ghazala Riaz) ---------- */
+  .mini-stats{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px;
+  }
+  @media (max-width:900px){ .mini-stats{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:480px){ .mini-stats{ grid-template-columns:1fr; } }
+  .mini-stat-card{
+    border-radius:12px; padding:16px 18px; border:1px solid transparent;
+  }
+  .mini-stat-label{
+    font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px;
+    margin-bottom:8px; opacity:.75;
+  }
+  .mini-stat-value{ font-size:24px; font-weight:300; font-variant-numeric:tabular-nums; }
+  .mini-stat-card.tint-a{ background:color-mix(in srgb, var(--primary) 6%, var(--bg)); color:var(--primary); }
+  .mini-stat-card.tint-b{ background:color-mix(in srgb, var(--accent) 7%, var(--bg)); color:var(--accent); }
+  .mini-stat-card.tint-c{ background:color-mix(in srgb, var(--success) 8%, var(--bg)); color:#1a7f42; }
+  .mini-stat-card.tint-d{ background:color-mix(in srgb, #7C3AED 7%, var(--bg)); color:#7C3AED; }
+
+  .trend-chart-label{ font-size:9.5px; fill:var(--muted-fg); font-family:-apple-system,sans-serif; }
+
+  .action-item-row{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:14px 20px; border-bottom:1px solid var(--border); font-size:13.5px;
+  }
+  .action-item-row:last-child{ border-bottom:0; }
+  .action-item-count{
+    font-size:11px; font-weight:600; color:var(--muted-fg);
+    background:var(--muted); padding:3px 10px; border-radius:999px; white-space:nowrap;
+  }
+
+  /* ---------- history feed ---------- */
+  .history-list{ list-style:none; margin:0; padding:0; }
+  .history-item{
+    display:flex; gap:16px; padding:16px 20px; border-bottom:1px solid var(--border);
+  }
+  .history-item:last-child{ border-bottom:0; }
+  .history-date{
+    flex:0 0 92px; font-size:12px; color:var(--muted-fg); padding-top:2px; font-variant-numeric:tabular-nums;
+  }
+  .history-body{ flex:1; }
+  .history-top{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:3px; }
+  .history-name{ font-weight:600; font-size:14px; }
+  .history-type{
+    font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px;
+    background:var(--muted); color:var(--muted-fg);
+  }
+  .history-note{ font-size:13px; color:var(--muted-fg); line-height:1.5; }
+  .history-link{ font-size:12.5px; color:var(--primary-light); font-weight:600; margin-top:6px; display:inline-block; cursor:default; }
+
+  /* ---------- HOTS forms ---------- */
+  .debrief-pill{
+    font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; white-space:nowrap;
+  }
+  .debrief-pill.done{ background:color-mix(in srgb, var(--success) 14%, transparent); color:var(--success); }
+  .debrief-pill.pending{ background:color-mix(in srgb, var(--warning) 16%, transparent); color:#9a6400; }
+  .debrief-pill.skipped{ background:var(--muted); color:var(--muted-fg); }
+
+  .hots-pct{ font-size:20px; font-weight:300; font-variant-numeric:tabular-nums; }
+
+  .hots-area{ margin-bottom:22px; }
+  .hots-area-head{
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:14px; font-weight:600; margin-bottom:8px;
+  }
+  .hots-area-head .area-score{ font-size:12.5px; color:var(--muted-fg); font-weight:500; font-variant-numeric:tabular-nums; }
+  .hots-indicator{
+    padding:14px 18px; border-bottom:1px solid var(--border);
+  }
+  .hots-indicator:last-child{ border-bottom:0; }
+  .hots-ind-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+  .hots-ind-name{ font-size:13.5px; line-height:1.45; flex:1; }
+  .hots-pips{ display:flex; gap:4px; flex:0 0 auto; padding-top:1px; }
+  .hots-pip{ width:20px; height:8px; border-radius:4px; background:var(--border); }
+  .hots-pip.filled{ background:var(--primary); }
+  .hots-pip.filled.zero{ background:var(--error); }
+  .hots-ind-evidence, .hots-ind-improve{
+    font-size:12.5px; color:var(--muted-fg); line-height:1.5; margin-top:8px; padding-left:2px;
+  }
+  .hots-ind-evidence b, .hots-ind-improve b{ color:var(--fg); font-weight:600; }
+
+  .hots-summary-card{
+    background:var(--bg); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-soft);
+    padding:18px 20px; font-size:13.5px; line-height:1.6; color:var(--fg); margin-bottom:20px;
+  }
+  .hots-focus-card, .insight-card{
+    background:linear-gradient(135deg, color-mix(in srgb, var(--primary) 6%, var(--bg)) 0%, var(--bg) 100%);
+    border:1px solid var(--border); border-radius:12px; padding:18px 20px; box-shadow:var(--shadow-soft);
+  }
+  .hots-focus-card h3, .insight-card h3{ margin:0 0 4px; font-size:15px; font-weight:600; }
+  .hots-focus-card p, .insight-card p{ margin:0 0 6px; font-size:13.5px; color:var(--muted-fg); line-height:1.5; }
+  .hots-focus-card p:last-child, .insight-card p:last-child{ margin-bottom:0; }
+  .insight-card{
+    display:flex; gap:14px; align-items:flex-start; margin-bottom:28px;
+    border-left:3px solid var(--accent);
+    background:color-mix(in srgb, var(--accent) 8%, var(--bg));
+  }
+  .insight-card .ic{
+    width:36px; height:36px; border-radius:50%; background:var(--accent); color:#fff;
+    display:flex; align-items:center; justify-content:center; flex:0 0 36px; font-size:16px;
+  }
+  .insight-card .body{ flex:1; }
+  .insight-card .eyebrow{
+    font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.6px;
+    color:var(--accent); margin-bottom:3px;
+  }
+  .insight-card b{ color:var(--fg); }
+
+  .stat-card.clickable{ cursor:pointer; transition:box-shadow .15s ease; }
+  .stat-card.clickable:hover{ box-shadow:var(--shadow-medium); }
+  .stat-card .delta{ font-size:12px; font-weight:600; margin-top:8px; display:inline-flex; align-items:center; gap:4px; }
+  .stat-card .delta.up{ color:var(--success); }
+  .stat-card .delta.down{ color:var(--error); }
+
+  /* ---------- your debrief (officer-only "coach-the-coach" card) ---------- */
+  .debrief-card{
+    background:var(--bg); border:1px solid var(--border); border-radius:12px;
+    box-shadow:var(--shadow-soft); padding:20px 22px; margin-bottom:20px;
+  }
+  .debrief-card.concern{ border-left:3px solid var(--warning); }
+  .debrief-card.clean{ border-left:3px solid var(--success); }
+  .debrief-praise{ font-size:14px; font-style:italic; color:var(--fg); margin-bottom:16px; line-height:1.55; }
+  .debrief-section{ margin-bottom:14px; }
+  .debrief-section:last-child{ margin-bottom:0; }
+  .debrief-section .label{
+    font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px;
+    color:var(--muted-fg); margin-bottom:6px;
+  }
+  .debrief-win{
+    display:flex; gap:8px; align-items:flex-start; font-size:13.5px; line-height:1.5; margin-bottom:8px;
+  }
+  .debrief-win:last-child{ margin-bottom:0; }
+  .debrief-win .dot{ color:var(--success); flex:0 0 auto; margin-top:2px; }
+  .debrief-win .txt b{ display:block; font-weight:600; color:var(--fg); }
+  .debrief-win .txt span{ color:var(--muted-fg); }
+  .debrief-concern-box{
+    background:color-mix(in srgb, var(--warning) 8%, var(--muted)); border-radius:8px; padding:12px 14px; font-size:13px; line-height:1.55;
+  }
+  .debrief-concern-box p{ margin:0 0 6px; }
+  .debrief-concern-box p:last-child{ margin-bottom:0; }
+  .debrief-value{ font-size:12.5px; color:var(--muted-fg); font-style:italic; border-top:1px solid var(--border); padding-top:12px; margin-top:2px; }
+  .debrief-empty{
+    background:var(--muted); border:1px dashed var(--border); border-radius:12px;
+    padding:16px 20px; font-size:13.5px; color:var(--muted-fg); margin-bottom:20px;
+  }
+
+  .proto-note{
+    margin-top:40px; padding:14px 16px; border:1px dashed var(--border);
+    border-radius:10px; font-size:12px; color:var(--muted-fg); background:var(--muted);
+  }
+  .proto-note b{ color:var(--fg); }
+
+  .fade-in{ animation:fadeIn .18s ease; }
+  @keyframes fadeIn{ from{ opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+  @media (prefers-reduced-motion:reduce){ .fade-in{ animation:none; } }
+
+  /* ---------- mobile layout — placed last so it wins over earlier same-
+     specificity rules (e.g. the base .container padding) regardless of
+     source order elsewhere in the sheet ---------- */
+  @media (max-width:720px){
+    .navlinks{ display:none; }
+    .role-pill{ display:none; }
+    .navbar .user .name, .navbar .user .role{ display:none; }
+    .navbar .user{ padding-left:8px; margin-left:0; border-left:0; }
+    .logout-icon{ display:inline; }
+    .logout-label{ display:none; }
+    .bottom-nav{ display:block; }
+    .container{ padding:20px 16px 80px; }
+    .page-head h1{ font-size:24px; }
+  }
+</style>
+
+<div class="app">
+  <div class="navbar">
+    <div class="brand">
+      <div class="mark">
+        <svg viewBox="0 0 24 12" fill="none"><circle cx="4" cy="4" r="3.2" fill="#0E1F4C"/><circle cx="20" cy="4" r="3.2" fill="#0E1F4C"/><path d="M3 9.5C7 12.5 17 12.5 21 9.5" stroke="#0E1F4C" stroke-width="2.1" stroke-linecap="round"/></svg>
+      </div>
+      <span>Rumi</span>
+    </div>
+    <div class="navlinks">
+      <button class="nav-btn" data-role="aeo" data-nav="attention">My Patch <span class="badge-count attn-count">3</span></button>
+      <button class="nav-btn" data-role="aeo" data-nav="schools">Schools</button>
+      <button class="nav-btn" data-role="aeo" data-nav="teachers">Teachers</button>
+      <button class="nav-btn" data-role="aeo" data-nav="my-forms">My HOTS forms</button>
+      <button class="nav-btn" data-role="deo" data-nav="deo-district">My District</button>
+      <button class="nav-btn" data-role="minister" data-nav="minister-overview">Punjab Overview</button>
+    </div>
+    <div class="spacer"></div>
+    <div class="role-toggle" role="group" aria-label="Viewing as">
+      <button data-role-switch="aeo" class="role-switch-btn">AEO</button>
+      <button data-role-switch="deo" class="role-switch-btn">DEO</button>
+      <button data-role-switch="minister" class="role-switch-btn">Minister</button>
+    </div>
+    <div class="visibility-toggle" role="group" aria-label="Visibility mode">
+      <button data-visibility="aggregate" id="visAggBtn">Aggregate</button>
+      <button data-visibility="individual" id="visIndBtn">Individual</button>
+    </div>
+    <div class="role-pill" id="rolePill">AEO — Rawalpindi</div>
+    <div class="user">
+      <div class="avatar" id="userAvatar">SI</div>
+      <div>
+        <div class="name" id="userName">Sadia Iqbal</div>
+        <div class="role" id="userRoleLine">Markaz: Adyala</div>
+      </div>
+    </div>
+    <button class="logout"><span class="logout-icon" aria-hidden="true">&#9211;</span><span class="logout-label">Sign out</span></button>
+  </div>
+
+  <div class="shell">
+    <div class="container" id="container">
+      <!-- screens injected here -->
+    </div>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Primary">
+    <div class="bn-row">
+      <button class="nav-btn" data-role="aeo" data-nav="attention"><span class="bn-icon">&#128203;</span>My Patch<span class="badge-count attn-count">3</span></button>
+      <button class="nav-btn" data-role="aeo" data-nav="schools"><span class="bn-icon">&#127979;</span>Schools</button>
+      <button class="nav-btn" data-role="aeo" data-nav="teachers"><span class="bn-icon">&#128101;</span>Teachers</button>
+      <button class="nav-btn" data-role="aeo" data-nav="my-forms"><span class="bn-icon">&#128221;</span>HOTS</button>
+      <button class="nav-btn" data-role="deo" data-nav="deo-district"><span class="bn-icon">&#127979;</span>District</button>
+      <button class="nav-btn" data-role="minister" data-nav="minister-overview"><span class="bn-icon">&#127757;</span>Punjab</button>
+    </div>
+  </nav>
+</div>
+
+<script>
+(function(){
+  // ---- data model ----
+  // Each school: aeo_schools row + rolled-up Digital Coach (DC) + lesson-plan (LP) activity.
+  // trend[] = last 4 months, oldest→newest, used for the sparkline + up/down arrow.
+  // Schools, EMIS numbers, and teacher counts below are REAL — pulled live from
+  // TaleemHub_DB (Adyala markaz, Rawalpindi; role=TEACHER, status=active;
+  // governed query via taleemabad-data:data-analyst/data-admin, rule_version
+  // v0.22.5). "Adyala" is a genuine markaz — 11 schools, 45 teachers, confirmed
+  // by that query, not assumed. EMIS lives on TaleemHub_DB.schools.emis_number
+  // (joined via school_id) — NOT on the users/roster table, which is why an
+  // earlier check of the roster alone wrongly concluded EMIS didn't exist.
+  // Everything BELOW the name/teacherCount/emis (connectivity, DC score, lesson
+  // plans, and every individual teacher — name, subject, score, history) is
+  // still fabricated: TaleemHub has no performance data, and pulling real
+  // teacher names to sit next to invented scores would be worse than an
+  // all-fake prototype, not more honest.
+  var SCHOOLS = [
+    {id:'s1', name:'GPS Dhamial', emis:'37330317', teacherCount:11, avgClassSize:48, connectivity:'Good', lastVisited:'9 days ago',
+      dcScore:76, dcTrend:[70,72,74,76], lpCount:15, lpTrend:[11,13,14,15],
+      lessonPlans:[{title:'Fractions basics', count:4},{title:'Water cycle', count:3},{title:'Urdu poetry recitation', count:2},{title:'Addition with carrying', count:2}]},
+    {id:'s2', name:'GES Khasalaa Kallan', emis:'37330350', teacherCount:8, avgClassSize:35, connectivity:'Good', lastVisited:'14 days ago',
+      dcScore:82, dcTrend:[77,79,80,82], lpCount:10, lpTrend:[8,9,9,10],
+      lessonPlans:[{title:'Shapes and symmetry', count:3},{title:'Letter sounds', count:3},{title:'Simple sentences', count:4}]},
+    {id:'s3', name:'GPS Bodial', emis:'37330309', teacherCount:5, avgClassSize:41, connectivity:'Limited', lastVisited:'30 days ago',
+      dcScore:58, dcTrend:[62,60,59,58], lpCount:8, lpTrend:[9,9,8,8],
+      lessonPlans:[{title:'Multiplication tables', count:3},{title:'Parts of a plant', count:3},{title:'Reading comprehension', count:2}]},
+    {id:'s4', name:'GPS Khatana', emis:'37330687', teacherCount:5, avgClassSize:39, connectivity:'Good', lastVisited:'11 days ago',
+      dcScore:71, dcTrend:[66,68,70,71], lpCount:9, lpTrend:[7,8,8,9],
+      lessonPlans:[{title:'Days of the week (Urdu)', count:3},{title:'Counting to 100', count:3},{title:'The five senses', count:2}]},
+    {id:'s5', name:'GPS Central Jail RWP', emis:'37330305', teacherCount:4, avgClassSize:33, connectivity:'None', lastVisited:'54 days ago',
+      dcScore:42, dcTrend:[52,48,45,42], lpCount:3, lpTrend:[7,5,4,3],
+      lessonPlans:[{title:'Counting basics', count:2},{title:'Alphabet recognition', count:1}]},
+    {id:'s6', name:'GPS Dhala', emis:'37330307', teacherCount:3, avgClassSize:28, connectivity:'Good', lastVisited:'16 days ago',
+      dcScore:79, dcTrend:[74,76,78,79], lpCount:6, lpTrend:[4,5,5,6],
+      lessonPlans:[{title:'Weather and seasons', count:3},{title:'Simple past tense', count:3}]},
+    {id:'s7', name:'GPS Degal', emis:'37330315', teacherCount:3, avgClassSize:44, connectivity:'Limited', lastVisited:'38 days ago',
+      dcScore:55, dcTrend:[59,57,56,55], lpCount:5, lpTrend:[6,6,5,5],
+      lessonPlans:[{title:'Money and coins', count:3},{title:'Urdu handwriting practice', count:2}]},
+    {id:'s8', name:'GPS Shahpur Syedan', emis:'37330335', teacherCount:2, avgClassSize:31, connectivity:'Good', lastVisited:'7 days ago',
+      dcScore:85, dcTrend:[80,82,84,85], lpCount:5, lpTrend:[3,4,4,5],
+      lessonPlans:[{title:'Grammar — simple sentences', count:3},{title:'Science — five senses', count:2}]},
+    {id:'s9', name:'GPS Kalri', emis:'37330349', teacherCount:2, avgClassSize:36, connectivity:'Limited', lastVisited:'25 days ago',
+      dcScore:61, dcTrend:[65,63,62,61], lpCount:4, lpTrend:[5,5,4,4],
+      lessonPlans:[{title:'Reading — short story', count:2},{title:'Counting and place value', count:2}]},
+    {id:'s10', name:'GPS Hayal', emis:'37330250', teacherCount:1, avgClassSize:29, connectivity:'None', lastVisited:'61 days ago',
+      dcScore:35, dcTrend:[45,41,38,35], lpCount:1, lpTrend:[3,2,2,1],
+      lessonPlans:[{title:'Alphabet basics', count:1}]},
+    {id:'s11', name:'GPS Misriot', emis:'37330254', teacherCount:1, avgClassSize:27, connectivity:'Good', lastVisited:'5 days ago',
+      dcScore:88, dcTrend:[83,85,87,88], lpCount:3, lpTrend:[2,2,3,3],
+      lessonPlans:[{title:'Urdu storytelling', count:3}]},
+  ];
+  var TEACHERS = {
+    s1:[ // GPS Dhamial — 11 real teacher headcount, fictional individuals
+      {id:'t1', name:'Amina Yousaf', subject:'Grade 3 · Math', daysSince:2, dcScore:84, history:[{date:'2 days ago', type:'Digital Coach', note:'Fractions lesson — strong pacing, high student response rate.'}]},
+      {id:'t2', name:'Sana Aslam', subject:'Grade 1 · English', daysSince:5, dcScore:77, history:[{date:'5 days ago', type:'Digital Coach', note:'Letter sounds review — good call-and-response.'}]},
+      {id:'t3', name:'Rabia Kausar', subject:'Grade 4 · Science', daysSince:9, dcScore:80, history:[{date:'9 days ago', type:'Digital Coach', note:'Water cycle diagram — clear explanation.'}]},
+      {id:'t4', name:'Farah Nawaz', subject:'Grade 2 · Urdu', daysSince:3, dcScore:88, history:[{date:'3 days ago', type:'Digital Coach', note:'Poetry recitation — confident delivery.'}]},
+      {id:'t5', name:'Nadia Sultan', subject:'Grade 5 · Math', daysSince:40, dcScore:44, history:[{date:'40 days ago', type:'Digital Coach', note:'Multiplication — several students disengaged mid-session.'}]},
+      {id:'t6', name:'Iqra Bibi', subject:'Grade 3 · English', daysSince:6, dcScore:73, history:[{date:'6 days ago', type:'Digital Coach', note:'Reading comprehension — steady pacing.'}]},
+      {id:'t7', name:'Mehwish Tariq', subject:'Grade 1 · Urdu', daysSince:12, dcScore:69, history:[{date:'12 days ago', type:'Digital Coach', note:'Alphabet review — moderate engagement.'}]},
+      {id:'t8', name:'Sobia Khalid', subject:'Grade 4 · Math', daysSince:8, dcScore:81, history:[{date:'8 days ago', type:'Digital Coach', note:'Addition with carrying — two worked examples.'}]},
+      {id:'t9', name:'Bushra Anwar', subject:'Grade 2 · Science', daysSince:33, dcScore:48, history:[{date:'33 days ago', type:'Digital Coach', note:'Five senses — session incomplete.'}]},
+      {id:'t10', name:'Hina Shahzad', subject:'Grade 5 · English', daysSince:4, dcScore:76, history:[{date:'4 days ago', type:'Digital Coach', note:'Vocabulary building — good wait time.'}]},
+      {id:'t11', name:'Zainab Riaz', subject:'Grade 3 · Urdu', daysSince:7, dcScore:83, history:[{date:'1 week ago', type:'Digital Coach', note:'Handwriting practice — engaged class.'}]},
+    ],
+    s2:[ // GES Khasalaa Kallan — 8 real teacher headcount
+      {id:'t12', name:'Ayesha Farooq', subject:'Grade 2 · Math', daysSince:3, dcScore:91, history:[{date:'3 days ago', type:'Digital Coach', note:'Shapes and symmetry — excellent engagement.'}]},
+      {id:'t13', name:'Uzma Jabeen', subject:'Grade 1 · Urdu', daysSince:6, dcScore:85, history:[{date:'6 days ago', type:'Digital Coach', note:'Letter sounds — strong.'}]},
+      {id:'t14', name:'Kiran Yasmin', subject:'Grade 4 · English', daysSince:38, dcScore:52, history:[{date:'38 days ago', type:'Digital Coach', note:'Simple sentences — session ran short.'}]},
+      {id:'t15', name:'Sadia Perveen', subject:'Grade 3 · Science', daysSince:5, dcScore:88, history:[{date:'5 days ago', type:'Digital Coach', note:'Good use of visual aids.'}]},
+      {id:'t16', name:'Nazia Bibi', subject:'Grade 5 · Math', daysSince:9, dcScore:79, history:[{date:'9 days ago', type:'Digital Coach', note:'Word problems — solid session.'}]},
+      {id:'t17', name:'Rukhsana Khan', subject:'Grade 1 · English', daysSince:14, dcScore:74, history:[{date:'2 weeks ago', type:'Digital Coach', note:'Phonics — good session overall.'}]},
+      {id:'t18', name:'Samina Riasat', subject:'Grade 2 · Urdu', daysSince:7, dcScore:86, history:[{date:'1 week ago', type:'Digital Coach', note:'Reading aloud — confident, steady.'}]},
+      {id:'t19', name:'Farzana Iqbal', subject:'Grade 4 · Science', daysSince:11, dcScore:70, history:[{date:'11 days ago', type:'Digital Coach', note:'Parts of a plant — decent pacing.'}]},
+    ],
+    s3:[ // GPS Bodial — 5 real teacher headcount (1 not yet on Rumi)
+      {id:'t20', name:'Naila Yasin', subject:'Grade 3 · Math', daysSince:20, dcScore:60, history:[{date:'20 days ago', type:'Digital Coach', note:'Multiplication tables — reasonable pacing.'}]},
+      {id:'t21', name:'Robina Sadiq', subject:'Grade 1 · Urdu', status:'not_on_rumi'},
+      {id:'t22', name:'Shazia Naz', subject:'Grade 5 · English', daysSince:45, dcScore:39, history:[{date:'45 days ago', type:'Digital Coach', note:'Short story — low response rate from class.'}]},
+      {id:'t23', name:'Amber Rashid', subject:'Grade 2 · Science', daysSince:10, dcScore:66, history:[{date:'10 days ago', type:'Digital Coach', note:'Parts of a plant — improving.'}]},
+      {id:'t24', name:'Tahira Bano', subject:'Grade 4 · Math', daysSince:28, dcScore:55, history:[{date:'28 days ago', type:'Digital Coach', note:'Word problems — moderate engagement.'}]},
+    ],
+    s4:[ // GPS Khatana — 5 real teacher headcount
+      {id:'t25', name:'Saira Nazir', subject:'Grade 1 · Math', daysSince:6, dcScore:75, history:[{date:'6 days ago', type:'Digital Coach', note:'Counting to 100 — good pacing.'}]},
+      {id:'t26', name:'Farida Yousaf', subject:'Grade 3 · Urdu', daysSince:9, dcScore:71, history:[{date:'9 days ago', type:'Digital Coach', note:'Days of the week — steady.'}]},
+      {id:'t27', name:'Bushra Latif', subject:'Grade 2 · English', daysSince:35, dcScore:46, history:[{date:'35 days ago', type:'Digital Coach', note:'Low engagement, short session.'}]},
+      {id:'t28', name:'Mehnaz Riaz', subject:'Grade 5 · Science', daysSince:12, dcScore:68, history:[{date:'12 days ago', type:'Digital Coach', note:'Five senses — reasonable session.'}]},
+      {id:'t29', name:'Nasreen Akhtar', subject:'Grade 4 · Math', daysSince:8, dcScore:80, history:[{date:'8 days ago', type:'Digital Coach', note:'Word problems — strong.'}]},
+    ],
+    s5:[ // GPS Central Jail RWP — 4 real teacher headcount (None connectivity, 1 not yet on Rumi)
+      {id:'t30', name:'Rehana Kausar', subject:'Grade 2 · Urdu', daysSince:50, dcScore:31, history:[{date:'50 days ago', type:'Digital Coach', note:'Alphabet review — very low response rate.'}]},
+      {id:'t31', name:'Saima Bibi', subject:'Grade 1 · English', status:'not_on_rumi'},
+      {id:'t32', name:'Farhat Jabeen', subject:'Grade 4 · Math', daysSince:41, dcScore:38, history:[{date:'41 days ago', type:'Digital Coach', note:'Counting — session incomplete, connectivity dropped mid-way.'}]},
+      {id:'t33', name:'Naheed Sultana', subject:'Grade 3 · Science', daysSince:22, dcScore:55, history:[{date:'22 days ago', type:'Digital Coach', note:'Alphabet recognition — moderate engagement.'}]},
+    ],
+    s6:[ // GPS Dhala — 3 real teacher headcount
+      {id:'t34', name:'Shabana Khalid', subject:'Grade 1 · Math', daysSince:5, dcScore:82, history:[{date:'5 days ago', type:'Digital Coach', note:'Weather and seasons — engaged class.'}]},
+      {id:'t35', name:'Farzana Tariq', subject:'Grade 3 · English', daysSince:7, dcScore:77, history:[{date:'1 week ago', type:'Digital Coach', note:'Simple past tense — good pacing.'}]},
+      {id:'t36', name:'Amna Riasat', subject:'Grade 5 · Urdu', daysSince:9, dcScore:79, history:[{date:'9 days ago', type:'Digital Coach', note:'Reading aloud — confident.'}]},
+    ],
+    s7:[ // GPS Degal — 3 real teacher headcount
+      {id:'t37', name:'Nuzhat Yasmin', subject:'Grade 2 · Math', daysSince:31, dcScore:58, history:[{date:'31 days ago', type:'Digital Coach', note:'Money and coins — reasonable session.'}]},
+      {id:'t38', name:'Rifat Naz', subject:'Grade 4 · English', daysSince:14, dcScore:61, history:[{date:'2 weeks ago', type:'Digital Coach', note:'Vocabulary building — steady.'}]},
+      {id:'t39', name:'Samina Kausar', subject:'Grade 1 · Science', daysSince:20, dcScore:47, history:[{date:'20 days ago', type:'Digital Coach', note:'Five senses — low engagement.'}]},
+    ],
+    s8:[ // GPS Shahpur Syedan — 2 real teacher headcount
+      {id:'t40', name:'Asma Bibi', subject:'Grade 3 · Math', daysSince:4, dcScore:87, history:[{date:'4 days ago', type:'Digital Coach', note:'Word problems — excellent engagement.'}]},
+      {id:'t41', name:'Rabia Nazir', subject:'Grade 5 · English', daysSince:6, dcScore:83, history:[{date:'6 days ago', type:'Digital Coach', note:'Grammar review — strong.'}]},
+    ],
+    s9:[ // GPS Kalri — 2 real teacher headcount
+      {id:'t42', name:'Sumaira Yousaf', subject:'Grade 2 · Urdu', daysSince:18, dcScore:63, history:[{date:'18 days ago', type:'Digital Coach', note:'Reading aloud — improving.'}]},
+      {id:'t43', name:'Naila Farooq', subject:'Grade 4 · Science', daysSince:23, dcScore:59, history:[{date:'23 days ago', type:'Digital Coach', note:'Counting and place value — moderate.'}]},
+    ],
+    s10:[ // GPS Hayal — 1 real teacher headcount. Rich profile example (see
+          // renderTeacherProfile) — the one teacher this prototype builds the
+          // full detail screen for, per the user's own scoping decision.
+      {id:'t44', name:'Ghazala Riaz', subject:'Grade 1 · Math', daysSince:3, dcScore:35,
+        history:[{date:'3 days ago', type:'Digital Coach', note:'Counting — low response rate, connectivity flagged.'}],
+        richProfile:true,
+        dcSessionCount:9,
+        trainings:{completed:3, total:5},
+        monoLpCount:4,
+        multiLpCount:1,
+        // Values drive the trend line's shape/color band ONLY — never rendered
+        // as text, per the "visual read, no score axis" spec.
+        dcTrendPoints:[{label:'18d ago', value:52},{label:'15d ago', value:46},{label:'12d ago', value:41},{label:'9d ago', value:37},{label:'6d ago', value:33},{label:'3d ago', value:29}],
+        actionItems:[
+          {text:'Use more open-ended questions instead of yes/no prompts', sessionCount:2},
+          {text:'Slow down pacing during group counting activities', sessionCount:1}
+        ],
+        recentLessonPlans:[
+          {grade:'Grade 1', subject:'Math', topic:'Counting to 20', type:'mono'},
+          {grade:'Grade 1', subject:'Math', topic:'Shapes and patterns', type:'mono'},
+          {grade:'Grade 1–2 combined', subject:'Math', topic:'Addition within 10', type:'multi'},
+          {grade:'Grade 1', subject:'Math', topic:'Number bonds', type:'mono'},
+          {grade:'Grade 1', subject:'Math', topic:'Alphabet basics (cross-curricular)', type:'mono'}
+        ]},
+    ],
+    s11:[ // GPS Misriot — 1 real teacher headcount
+      {id:'t45', name:'Farhana Bibi', subject:'Grade 3 · English', daysSince:5, dcScore:88, history:[{date:'5 days ago', type:'Digital Coach', note:'Storytelling — confident, well-paced.'}]},
+    ],
+  };
+  var NEEDS_SUPPORT_THRESHOLD = 50;
+  var STALE_DAYS = 30;
+
+  // ---- HOTS rubric — the actual PESRP/PECTAA Classroom Observation Tool AEOs
+  // fill in via /observe. 5 areas, 16 indicators, scored 0-3 (0=absent,
+  // 1=emerging, 2=developing, 3=proficient). Mirrors hots-framework.js exactly.
+  var HOTS_AREAS = [
+    {key:'classroom_environment', title:'Classroom Environment', indicators:[
+      {id:1, name:'The classroom fosters open discussions and critical thinking'},
+      {id:2, name:'Resources and space are organized to support collaboration and problem-solving'},
+      {id:3, name:'Students are actively encouraged to participate in complex tasks with clear expectations'},
+    ]},
+    {key:'lesson_planning', title:'Lesson Planning', indicators:[
+      {id:4, name:'Lesson objectives explicitly link to critical thinking, problem-solving, or creative skills'},
+      {id:5, name:'Lesson plans include strategies for promoting analysis, evaluation, and synthesis'},
+      {id:6, name:'The lesson integrates interdisciplinary or real-world applications'},
+    ]},
+    {key:'instructional_strategies', title:'Instructional Strategies', indicators:[
+      {id:7, name:'The teacher poses open-ended and thought-provoking questions'},
+      {id:8, name:'Instruction actively involves students in analyzing, interpreting, and critiquing content'},
+      {id:9, name:'The teacher demonstrates problem-solving and creativity in real-time scenarios'},
+      {id:10, name:'Scaffolding is used effectively to help students explore complex ideas'},
+    ]},
+    {key:'student_engagement', title:'Student Engagement', indicators:[
+      {id:11, name:'Students collaborate on tasks requiring synthesis, evaluation, or innovative problem-solving'},
+      {id:12, name:'The teacher encourages students to explore multiple perspectives or create novel solutions'},
+      {id:13, name:'Students actively engage in discussions and debates on complex topics'},
+    ]},
+    {key:'assessment_feedback', title:'Assessment & Feedback', indicators:[
+      {id:14, name:'Students engage in self-assessment or peer-assessment to evaluate reasoning and solutions'},
+      {id:15, name:'The teacher provides feedback that guides students in refining reasoning or solutions'},
+      {id:16, name:'Assessment tasks require students to analyse, evaluate, or create based on the lesson content'},
+    ]},
+  ];
+
+  // ---- HOTS forms Sadia (this AEO) has submitted via /observe.
+  // Mirrors coaching_sessions: observer_user_id=her, observation_type='leader_observation'.
+  // debrief_status: pending | done | skipped.
+  var MY_FORMS = [
+    {id:'f1', teacher:'Amina Yousaf', school:'GPS Dhamial', date:'3 days ago', debriefStatus:'done', overallPct:79,
+      scores:{1:3,2:2,3:3,4:2,5:3,6:2,7:3,8:2,9:2,10:2,11:3,12:2,13:2,14:2,15:2,16:2},
+      evidence:{7:'"Why do you think the character made that choice — could she have done anything else?" — asked twice, with follow-up.', 10:'Gave sentence starters for the first two problems, then let the class try the third alone.'},
+      improvement:{9:'Model your own thinking out loud on one problem before turning it over to students.', 16:'Add one analysis-level question to the exit ticket, not just recall.'},
+      summary:'A well-paced fractions lesson with strong open questioning; formative checks were present but light on rubric-guided self-assessment.',
+      focusArea:{title:'Assessment & Feedback', why:'Lowest-scoring area this session.', tryText:'Have students swap work and evaluate against a simple 3-point rubric before you mark it yourself.'},
+      observerDebrief:{
+        praiseLine:'You opened by naming something specific Amina did well before getting into anything else — that set the whole tone.',
+        wins:[
+          {behaviour:'Opened with specific praise', evidence:'"The sentence-starter idea for the first two problems — that really helped them get moving."'},
+          {behaviour:'Framed feedback as a shared move, not a verdict', evidence:'"Next time, what if we thought out loud on the board together before they try it solo?"'}
+        ],
+        concern:null,
+        tryMove:{move:'Ask Amina to narrate her own thinking on one problem before handing it to the class.', evidence:'She jumped straight to independent practice on problem 3 without modelling it herself.', instead:'Try: "Let me think through the first one out loud, then it\'s your turn."'},
+        value:'A short, two-win debrief like this keeps teachers engaged — you didn\'t over-load her with every possible fix.'
+      }},
+    {id:'f2', teacher:'Nadia Sultan', school:'GPS Dhamial', date:'5 days ago', debriefStatus:'pending', overallPct:54,
+      scores:{1:2,2:1,3:2,4:2,5:1,6:1,7:2,8:1,9:1,10:1,11:2,12:1,13:1,14:1,15:2,16:1},
+      evidence:{7:'Asked "what is 6 times 7" — closed, single answer, no follow-up.', 12:'"Does anyone have a different way?" was asked once, then the teacher moved on without exploring it.'},
+      improvement:{7:'Follow a closed question with "why" or "how did you get there" at least once per lesson.', 10:'Introduce one scaffold (worked example, sentence starter) before independent practice.'},
+      summary:'Several students disengaged mid-session; multiplication tables covered at a mostly recall level.',
+      focusArea:{title:'Instructional Strategies', why:'4 of 4 indicators scored 1—the lowest area.', tryText:'Pick one lesson this week to plan a single open-ended question in advance, and note what happens.'}},
+    {id:'f3', teacher:'Rehana Kausar', school:'GPS Central Jail RWP', date:'22 days ago', debriefStatus:'done', overallPct:44,
+      scores:{1:1,2:1,3:1,4:2,5:1,6:1,7:1,8:1,9:1,10:1,11:1,12:1,13:1,14:1,15:1,16:2},
+      evidence:{1:'Discussion was entirely teacher-led; students answered factual questions only.', 14:'No self- or peer-assessment observed during the session.'},
+      improvement:{1:'Try one open "what do you think" question this week and give wait time before calling on anyone.'},
+      summary:'Counting lesson, mostly recall-based; low response rate from the class throughout.',
+      focusArea:{title:'Classroom Environment', why:'All 3 indicators scored 1.', tryText:'Rearrange two rows into a cluster of desks for the next group activity, even briefly.'},
+      observerDebrief:{
+        praiseLine:null,
+        wins:[],
+        concern:{whatHappened:'The debrief leaned on general criticism ("this needs to be much better") rather than a specific, observable moment.', whyItMatters:'Without a concrete example, Rehana has nothing to actually change next lesson — vague critique tends to land as judgment, not guidance.', instead:'Anchor the next debrief to one real moment: "When you asked the class to count together, only 3 hands went up — let\'s look at why."'},
+        tryMove:{move:'Pick a single indicator to focus the next debrief on, with one piece of evidence.', evidence:'This session touched on all 16 indicators at once in the conversation.', instead:'Try: "Today let\'s just talk about open discussion — here\'s one moment I noticed."'},
+        value:'This card is flagged because the conversation read as broad criticism rather than a specific, actionable moment — not because nothing good happened, but because a concrete next step was missing.'
+      }},
+    {id:'f4', teacher:'Ayesha Farooq', school:'GES Khasalaa Kallan', date:'4 days ago', debriefStatus:'skipped', overallPct:88,
+      scores:{1:3,2:3,3:3,4:3,5:2,6:3,7:3,8:3,9:2,10:3,11:3,12:3,13:2,14:2,15:3,16:3},
+      evidence:{2:'Manipulatives and shape charts available and used by table groups.', 11:'Groups designed their own symmetry pattern and presented reasoning to the class.'},
+      improvement:{9:'Narrate your own reasoning once when solving a novel problem on the board.'},
+      summary:'Excellent collaborative session on shapes and symmetry; consistently high engagement across the class.',
+      focusArea:{title:'Instructional Strategies', why:'Strongest area was student engagement — this is the next lever.', tryText:'Model think-aloud problem-solving once per lesson to close the small gap on indicator 9.'}},
+    {id:'f5', teacher:'Amber Rashid', school:'GPS Bodial', date:'5 days ago', debriefStatus:'pending', overallPct:63,
+      scores:{1:2,2:2,3:2,4:2,5:2,6:1,7:2,8:2,9:1,10:2,11:2,12:1,13:2,14:1,15:2,16:2},
+      evidence:{13:'Two students disagreed about the story\'s ending and briefly debated their reasoning.'},
+      improvement:{6:'Connect the reading passage to a real-world example students recognise from outside school.'},
+      summary:'Reading comprehension lesson, steadily improving; still mostly single right-answer framing.',
+      focusArea:{title:'Lesson Planning', why:'Real-world connection (indicator 6) was the weakest single score.', tryText:'Before the next lesson, note one real-world link to the topic and plan a 2-minute detour to it.'}},
+  ];
+
+  // ---- Hierarchical rollups above the AEO. Only Adyala (Sadia Iqbal) has real
+  // drill-down data (the SCHOOLS/TEACHERS/MY_FORMS above) — the other AEOs and
+  // all of Moawin/Akhuwat are STUB aggregates only, flagged as such rather than
+  // fabricating fake schools/teachers under them.
+  //
+  // "Punjab" is not itself a governed region in the real data — per the actual
+  // BigQuery governance rules (checked via the data-analyst agent), Rawalpindi
+  // and Moawin/Akhuwat are separate platforms/schemas/frameworks (HOTS+Digital
+  // Coach vs. Zavia AI fidelity scoring) whose numbers are NEVER merged or
+  // compared — only reported side by side. The Minister view must reflect that.
+  // coveragePct/lastActivityDays/dcTrend/connectivityIssueSchools are the DEO-
+  // altitude fields (coverage/activity/trend/systemic gap) — deliberately NOT
+  // just more AEO-level detail rolled up. See computeDeoDistrictStats().
+  var DEO_DISTRICT = {
+    name:'Rawalpindi District',
+    aeos:[
+      {id:'aeo-adyala', name:'Sadia Iqbal', markaz:'Adyala', drillable:true,
+        schools:SCHOOLS.length, teachers:SCHOOLS.reduce(function(a,s){return a+s.teacherCount;},0),
+        dcAvg:null, lpTotal:null, due:null, coveragePct:null, lastActivityDays:null, dcTrend:null, connectivityIssueSchools:null},
+      {id:'aeo-kahuta', name:'Imran Sethi', markaz:'Kahuta', drillable:false,
+        schools:6, teachers:38, dcAvg:71, lpTotal:44, due:9,
+        coveragePct:55, lastActivityDays:12, dcTrend:[74,72,71,71], connectivityIssueSchools:2},
+      {id:'aeo-gujarkhan', name:'Farah Bukhari', markaz:'Gujar Khan', drillable:false,
+        schools:8, teachers:44, dcAvg:65, lpTotal:57, due:14,
+        coveragePct:38, lastActivityDays:26, dcTrend:[70,68,66,65], connectivityIssueSchools:3},
+    ]
+  };
+  var PUNJAB_REGIONS = [
+    {key:'rawalpindi', name:'Rawalpindi', framework:'HOTS + Digital Coach', drillable:true,
+      note:'The region this whole prototype is built on.'},
+    {key:'moawin', name:'Moawin/Akhuwat', framework:'Zavia AI (fidelity-scored)', drillable:false,
+      note:'Different platform, different schema (org → district → tehsil → cluster → school) — not modeled in this prototype, and never merged with Rawalpindi’s numbers per governance rules.',
+      districts:[
+        {name:'Jhelum Cluster', schools:22, teachers:140, due:31},
+        {name:'Chakwal Cluster', schools:17, teachers:96, due:18},
+      ]}
+  ];
+
+  var state = { screen:'attention', role:'aeo', schoolId:null, teacherId:null, teacherFilter:'all', teacherSearch:'', visibility:'individual', formId:null, teacherHistoryOrigin:null, stubLabel:null };
+  var root = document.getElementById('container');
+
+  var ROLE_IDENTITY = {
+    aeo:{ rolePill:'AEO — Rawalpindi', name:'Sadia Iqbal', roleLine:'Markaz: Adyala', initials:'SI' },
+    deo:{ rolePill:'DEO — Rawalpindi', name:'Aamir Latif', roleLine:'District: Rawalpindi', initials:'AL' },
+    minister:{ rolePill:'Minister — Punjab', name:'Punjab School Education Dept.', roleLine:'Province: Punjab', initials:'PB' }
+  };
+
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function initials(name){ var p = name.split(' '); return ((p[0]||'')[0]||'') + ((p[1]||'')[0]||''); }
+  function needsSupport(v){ return v < NEEDS_SUPPORT_THRESHOLD; }
+  function isNotOnRumi(t){ return t.status === 'not_on_rumi'; }
+  function isAggregate(){ return state.visibility === 'aggregate'; }
+
+  // "3 days ago" / "1 week ago" / "2 months ago" → approx days ago, so feeds
+  // that claim to be "most recent first" can actually be sorted that way
+  // instead of relying on insertion order.
+  function parseRelativeDays(s){
+    var m = /(\d+)\s*(day|week|month)/i.exec(s || '');
+    if(!m) return 9999;
+    var n = parseInt(m[1], 10);
+    var unit = m[2].toLowerCase();
+    if(unit === 'week') return n * 7;
+    if(unit === 'month') return n * 30;
+    return n;
+  }
+
+  function trendOf(arr){
+    var last = arr[arr.length-1], prev = arr[arr.length-2];
+    var pct = prev ? Math.round(((last-prev)/prev)*100) : 0;
+    var dir = pct>0 ? 'up' : pct<0 ? 'down' : 'flat';
+    return {dir:dir, pct:Math.abs(pct)};
+  }
+
+  // Net direction across the whole trend window (first vs. last), not just
+  // the latest month-over-month step — catches a slow decline that flattens
+  // right at the end (e.g. [18,17,16,16] reads "flat" MoM but is down overall).
+  function netTrend(arr){
+    var first = arr[0], last = arr[arr.length-1];
+    var pct = first ? Math.round(((last-first)/first)*100) : 0;
+    var dir = last<first ? 'down' : last>first ? 'up' : 'flat';
+    return {dir:dir, pct:Math.abs(pct)};
+  }
+  function trendHtml(arr){
+    var t = trendOf(arr);
+    var arrow = t.dir==='up' ? '&#9650;' : t.dir==='down' ? '&#9660;' : '&#8212;';
+    return '<span class="trend '+t.dir+'">'+arrow+' '+t.pct+'%</span>';
+  }
+
+  // A single legible trend mechanism (smooth line + light fill + one emphasized
+  // endpoint) instead of stacking a bar, an arrow AND a disconnected bar-sparkline
+  // on top of each other to say the same thing three times.
+  function svgSpark(vals, w, h){
+    w = w || 64; h = h || 22;
+    var pad = Math.max(3, Math.round(h*0.14));
+    var min=Math.min.apply(null,vals), max=Math.max.apply(null,vals);
+    if(min===max){ min-=1; max+=1; }
+    var xs=function(i){ return vals.length===1 ? w/2 : (w-2*pad)*i/(vals.length-1)+pad; };
+    var ys=function(v){ return h-pad-(h-2*pad)*(v-min)/(max-min); };
+    var line = vals.map(function(v,i){ return (i?'L':'M')+xs(i).toFixed(1)+' '+ys(v).toFixed(1); }).join(' ');
+    var area = 'M'+xs(0).toFixed(1)+' '+(h-pad)+' '+vals.map(function(v,i){ return 'L'+xs(i).toFixed(1)+' '+ys(v).toFixed(1); }).join(' ')+' L'+xs(vals.length-1).toFixed(1)+' '+(h-pad)+' Z';
+    var dir = trendOf(vals).dir;
+    var col = dir==='up' ? '#22C55E' : dir==='down' ? '#DC2626' : '#6B7280';
+    var lastX = xs(vals.length-1).toFixed(1), lastY = ys(vals[vals.length-1]).toFixed(1);
+    var strokeW = h>40 ? 2.5 : 2;
+    var dotR = h>40 ? 4 : 2.4;
+    return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block; flex:0 0 auto;">'
+      + '<path d="'+area+'" fill="'+col+'" fill-opacity="0.14" stroke="none"/>'
+      + '<path d="'+line+'" fill="none" stroke="'+col+'" stroke-width="'+strokeW+'" stroke-linecap="round" stroke-linejoin="round"/>'
+      + '<circle cx="'+lastX+'" cy="'+lastY+'" r="'+dotR+'" fill="'+col+'"/>'
+      + '</svg>';
+  }
+
+  function allTeachersFlat(){
+    var rows = [];
+    Object.keys(TEACHERS).forEach(function(sid){
+      var school = SCHOOLS.find(function(s){return s.id===sid;});
+      TEACHERS[sid].forEach(function(t){
+        rows.push({ tid:t.id, sid:sid, schoolName:school.name, name:t.name, subject:t.subject, daysSince:t.daysSince, dcScore:t.dcScore, status:t.status||'active' });
+      });
+    });
+    return rows;
+  }
+
+  // STANDING RULE for every card in this file: a given number is stated in
+  // exactly ONE place per card. Severity/urgency is shown through color or
+  // position, never a repeated numeral (e.g. an icon badge restating the count
+  // already in the title). Encoding the same fact through a different channel
+  // — a bar's fill width, a sparkline's shape — is fine; printing the same
+  // digits twice is not.
+  function severityOf(count){ return count>=5 ? 'high' : count>=2 ? 'medium' : 'low'; }
+
+  function computeAttention(){
+    var flags = [];
+    var all = allTeachersFlat();
+    var stale = all.filter(function(t){ return t.daysSince >= STALE_DAYS; });
+    if(stale.length){
+      flags.push({
+        count: stale.length,
+        icon:'&#8987;', title: stale.length+' teacher'+(stale.length===1?'':'s')+" haven't had a Digital Coach session in "+STALE_DAYS+'+ days',
+        desc:'These teachers have gone quiet — worth a check-in before the gap widens.',
+        action:{ screen:'teachers', filterKey:'stale' }
+      });
+    }
+    // net direction over the whole window, not just the latest month — a slow
+    // decline that flattens right at the end (e.g. 18→17→16→16) still counts.
+    var dropping = SCHOOLS.filter(function(s){ return netTrend(s.lpTrend).dir==='down'; });
+    if(dropping.length){
+      flags.push({
+        count: dropping.length,
+        icon:'&#128200;', title: 'Lesson plan activity has dropped this quarter at '+dropping.length+' school'+(dropping.length===1?'':'s'),
+        desc:'Comparing this month’s LP generation count against the start of the trend window — could mean connectivity issues, or teachers falling out of the habit.',
+        action:{ screen:'schools' }
+      });
+    }
+    var supportCount = all.filter(function(t){ return needsSupport(t.dcScore); }).length;
+    if(supportCount){
+      flags.push({
+        count: supportCount,
+        icon:'&#128204;', title: supportCount+' teacher'+(supportCount===1?'':'s')+' flagged as needing support',
+        desc:'Based on recent Digital Coach sessions.',
+        action:{ screen:'teachers', filterKey:'needs-support' }
+      });
+    }
+    var notOnRumi = all.filter(function(t){ return isNotOnRumi(t); });
+    if(notOnRumi.length){
+      flags.push({
+        count: notOnRumi.length,
+        icon:'&#127793;', title: notOnRumi.length+' teacher'+(notOnRumi.length===1?'':'s')+" on your roster aren't yet on Rumi",
+        desc:'On the school roster but never registered — worth a nudge before they fall out of reach entirely.',
+        action:{ screen:'teachers', filterKey:'not-on-rumi' }
+      });
+    }
+    // Biggest problem first — not insertion order.
+    flags.sort(function(a,b){ return b.count - a.count; });
+    return flags;
+  }
+
+  // "At a glance" tiles + the growth-area insight line for My Patch — numbers
+  // to anchor the flags in, rather than opening straight on a problem list.
+  function computePatchStats(){
+    var all = allTeachersFlat();
+    var dueIds = {};
+    all.forEach(function(t){
+      if(isNotOnRumi(t) || needsSupport(t.dcScore) || t.daysSince >= STALE_DAYS) dueIds[t.tid] = true;
+    });
+    var due = Object.keys(dueIds).length;
+
+    var areaCounts = {};
+    MY_FORMS.forEach(function(f){
+      areaCounts[f.focusArea.title] = (areaCounts[f.focusArea.title] || 0) + 1;
+    });
+    var topArea = null, topCount = 0;
+    Object.keys(areaCounts).forEach(function(k){
+      if(areaCounts[k] > topCount){ topArea = k; topCount = areaCounts[k]; }
+    });
+
+    // Markaz-wide LP + DC aggregates: average each school's trend array
+    // position-wise, so the tile's arrow reflects the whole patch, not one school.
+    function averageTrend(key){
+      var months = SCHOOLS[0][key].length;
+      var out = [];
+      for(var i=0;i<months;i++){
+        var sum = 0;
+        SCHOOLS.forEach(function(s){ sum += s[key][i]; });
+        out.push(Math.round(sum / SCHOOLS.length));
+      }
+      return out;
+    }
+    var lpTrendAvg = averageTrend('lpTrend');
+    var dcTrendAvg = averageTrend('dcTrend');
+    var lpTotal = SCHOOLS.reduce(function(a,s){ return a+s.lpCount; },0);
+    var dcAvg = Math.round(SCHOOLS.reduce(function(a,s){ return a+s.dcScore; },0) / SCHOOLS.length);
+
+    var teachersOnRumi = all.filter(function(t){ return !isNotOnRumi(t); }).length;
+    var debriefsPending = MY_FORMS.filter(function(f){ return f.debriefStatus==='pending'; }).length;
+
+    return {
+      schools: SCHOOLS.length,
+      teachers: all.length,
+      teachersOnRumi: teachersOnRumi,
+      observedThisMonth: MY_FORMS.length,
+      debriefsPending: debriefsPending,
+      lpTotal: lpTotal,
+      lpTrend: lpTrendAvg,
+      dcAvg: dcAvg,
+      dcTrend: dcTrendAvg,
+      due: due,
+      topArea: topArea,
+      topAreaCount: topCount
+    };
+  }
+
+  function crumbs(){
+    var parts = [];
+    if(state.screen==='attention'){ parts = [{label:'My Patch'}]; }
+    else if(state.screen==='schools'){ parts = [{label:'Schools'}]; }
+    else if(state.screen==='school-detail'){
+      var school = SCHOOLS.find(function(s){return s.id===state.schoolId;});
+      parts = [{label:'Schools', screen:'schools'}, {label: school ? school.name : 'School'}];
+    }
+    else if(state.screen==='teachers'){ parts = [{label:'Teachers'}]; }
+    else if(state.screen==='teacher-history'){
+      var t = allTeachersFlat().find(function(x){return x.tid===state.teacherId;});
+      var origin = state.teacherHistoryOrigin;
+      if(origin && origin.screen==='school-detail'){
+        var originSchool = SCHOOLS.find(function(s){return s.id===origin.schoolId;});
+        parts = [{label:'Schools', screen:'schools'}, {label: originSchool ? originSchool.name : 'School', screen:'school-detail'}, {label: t ? t.name : 'Report history'}];
+      } else if(origin && origin.screen==='attention'){
+        parts = [{label:'My Patch', screen:'attention'}, {label: t ? t.name : 'Report history'}];
+      } else {
+        parts = [{label:'Teachers', screen:'teachers'}, {label: t ? t.name : 'Report history'}];
+      }
+    }
+    else if(state.screen==='markaz-history'){ parts = [{label:'My Patch', screen:'attention'}, {label:'Markaz report history'}]; }
+    else if(state.screen==='my-forms'){ parts = [{label:'My HOTS forms'}]; }
+    else if(state.screen==='form-detail'){
+      var f = MY_FORMS.find(function(x){return x.id===state.formId;});
+      parts = [{label:'My HOTS forms', screen:'my-forms'}, {label: f ? (f.teacher+' · '+f.date) : 'Form'}];
+    }
+    else if(state.screen==='deo-district'){ parts = [{label:'My District'}]; }
+    else if(state.screen==='minister-overview'){ parts = [{label:'Punjab Overview'}]; }
+    else if(state.screen==='stub-detail'){
+      parts = [{label: state.role==='minister' ? 'Punjab Overview' : 'My District', screen: state.role==='minister' ? 'minister-overview' : 'deo-district'}, {label: state.stubLabel || 'Detail'}];
+    }
+
+    // Drilling into an AEO's own screens from a higher role — prepend the
+    // rollup screen the AEO belongs to, so "back" reads correctly instead of
+    // dropping straight to the AEO's own top-level crumb.
+    var aeoScreens = ['attention','schools','school-detail','teachers','teacher-history','markaz-history','my-forms','form-detail'];
+    if(aeoScreens.indexOf(state.screen)!==-1){
+      if(state.role==='deo') parts.unshift({label:'My District', screen:'deo-district'});
+      else if(state.role==='minister') parts.unshift({label:'Punjab Overview', screen:'minister-overview'}, {label:'My District', screen:'deo-district'});
+    }
+    if(state.screen==='deo-district' && state.role==='minister'){
+      parts.unshift({label:'Punjab Overview', screen:'minister-overview'});
+    }
+
+    // A single-part crumb just repeats the page's own H1 — skip it entirely
+    // rather than show a redundant "My Patch" above "My Patch".
+    if(parts.length<=1) return '';
+
+    var html = '<div class="crumbs">';
+    parts.forEach(function(p, i){
+      if(i>0) html += '<span class="sep">/</span>';
+      if(i===parts.length-1){ html += '<span class="current">'+esc(p.label)+'</span>'; }
+      else{ html += '<button data-goto="'+p.screen+'">'+esc(p.label)+'</button>'; }
+    });
+    html += '</div>';
+    return html;
+  }
+
+  // Shared "needs attention" card list — same visual language (severity-colored
+  // icon, title, desc, one optional action button) at any altitude: teachers
+  // for an AEO, markaz for a DEO. Same philosophy, one level up, per design.
+  function renderFlagCards(flags){
+    var html = '<div class="card">';
+    if(flags.length===0){
+      html += '<div class="attn-empty"><div class="big">&#10003;</div>Nothing needs attention right now.</div>';
+    } else {
+      flags.forEach(function(f){
+        var sev = severityOf(f.count);
+        html += '<div class="attn-card"><div class="icon sev-'+sev+'">'+f.icon+'</div><div class="body">'
+          + '<div class="title">'+f.title+'</div>'
+          + '<div class="desc">'+f.desc+'</div>';
+        if(f.action){
+          var attr = f.action.filterKey ? ' data-goto-filtered-teachers="'+f.action.filterKey+'"' : ' data-goto="'+f.action.screen+'"';
+          html += '<button class="btn btn-ghost btn-sm" style="margin-top:10px;"'+attr+'>View details</button>';
+        }
+        html += '</div></div>';
+      });
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderAttention(){
+    var flags = computeAttention();
+    var stats = computePatchStats();
+    var html = '';
+    html += crumbs();
+    html += '<div class="page-head"><div>'
+          +   '<h1>My Patch</h1>'
+          +   '<p>Adyala markaz, at a glance — what actually needs your time this week, and where a little support would help most.</p>'
+          + '</div></div>';
+
+    html += '<div class="stats k4">'
+      + '<div class="stat-card accent-primary"><div class="label">Schools</div><div class="value">'+stats.schools+'</div><div class="sub">in your roster</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Teachers</div><div class="value">'+stats.teachers+'</div><div class="sub">across all schools</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">On Rumi</div><div class="value">'+stats.teachersOnRumi+'/'+stats.teachers+'</div><div class="sub">teachers active on Rumi</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Lesson plans</div><div class="value">'+stats.lpTotal+' '+trendHtml(stats.lpTrend)+'</div><div class="sub">generated this month, markaz-wide</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Digital Coach</div><div class="value">'+stats.dcAvg+'% '+trendHtml(stats.dcTrend)+'</div><div class="sub">avg. engagement across schools</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">HOTS observations</div><div class="value">'+stats.observedThisMonth+'</div><div class="sub">submitted this term</div></div>'
+      + '<div class="stat-card accent-warning"><div class="label">Debriefs pending</div><div class="value">'+stats.debriefsPending+'</div><div class="sub">still to hold with teachers</div></div>'
+      + '<div class="stat-card accent-warning clickable" data-goto-filtered-teachers="due"><div class="label">Due for a visit</div><div class="value">'+stats.due+'</div><div class="sub">needs support, quiet 30+ days, or not yet on Rumi</div></div>'
+      + '</div>';
+
+    if(stats.topArea){
+      html += '<div class="insight-card"><div class="ic">&#128161;</div><div class="body">'
+        + '<div class="eyebrow">Insight</div>'
+        + '<h3>Where to focus your next debriefs</h3>'
+        + '<p>Across your <b>'+stats.observedThisMonth+' HOTS observations</b> this term, the most common growth area is <b>'+esc(stats.topArea)+'</b> ('+stats.topAreaCount+' of '+stats.observedThisMonth+'). Focusing your next visits here will move the most classrooms.</p>'
+        + '</div></div>';
+    }
+
+    html += renderFlagCards(flags);
+
+    html += '<div class="section" style="margin-top:32px;"><div class="section-head"><h2>Recent activity — markaz</h2><a class="section-link" data-goto="markaz-history">View all &rarr;</a></div>'
+      + '<div style="font-size:13px; color:var(--muted-fg); margin:-8px 0 12px;">Latest 6 across all schools</div>';
+    html += renderHistoryList(markazHistoryRows().slice(0,6), false);
+    html += '</div>';
+
+    root.innerHTML = html;
+  }
+
+  function deoAeoRows(){
+    var patchStats = computePatchStats();
+    return DEO_DISTRICT.aeos.map(function(a){
+      if(a.id!=='aeo-adyala') return a;
+      // Coverage/activity/trend derived for real from Sadia's actual data,
+      // rather than hardcoded like the stub AEOs — same fields, real source.
+      var schoolsObserved = {};
+      MY_FORMS.forEach(function(f){ schoolsObserved[f.school] = true; });
+      var coveragePct = Math.round(Object.keys(schoolsObserved).length / SCHOOLS.length * 100);
+      var lastActivityDays = Math.min.apply(null, MY_FORMS.map(function(f){ return parseRelativeDays(f.date); }));
+      var connectivityIssueSchools = SCHOOLS.filter(function(s){ return s.connectivity!=='Good'; }).length;
+      return {id:a.id, name:a.name, markaz:a.markaz, drillable:a.drillable, schools:a.schools, teachers:a.teachers,
+        dcAvg:patchStats.dcAvg, lpTotal:patchStats.lpTotal, due:patchStats.due,
+        coveragePct:coveragePct, lastActivityDays:lastActivityDays, dcTrend:patchStats.dcTrend, connectivityIssueSchools:connectivityIssueSchools};
+    }).sort(function(a,b){ return a.name.localeCompare(b.name); });
+  }
+
+  // District-altitude aggregates: coverage (the actual lever a DEO can pull),
+  // range/variance across markaz (not just the average), not a bigger version
+  // of the AEO's own school/teacher counts.
+  function computeDeoDistrictStats(){
+    var aeos = deoAeoRows();
+    var districtDcAvg = Math.round(aeos.reduce(function(a,x){return a+x.dcAvg;},0) / aeos.length);
+    var coverageAvg = Math.round(aeos.reduce(function(a,x){return a+x.coveragePct;},0) / aeos.length);
+    var months = aeos[0].dcTrend.length;
+    var dcTrendAvg = [];
+    for(var i=0;i<months;i++){
+      var sum = 0;
+      aeos.forEach(function(a){ sum += a.dcTrend[i]; });
+      dcTrendAvg.push(Math.round(sum/aeos.length));
+    }
+    var dcAvgs = aeos.map(function(a){return a.dcAvg;});
+    var range = { low: Math.min.apply(null, dcAvgs), high: Math.max.apply(null, dcAvgs) };
+    var aeosNeedingSupport = aeos.filter(function(a){ return a.coveragePct < 60; }).length;
+    return { aeos:aeos, districtDcAvg:districtDcAvg, dcTrend:dcTrendAvg, coverageAvg:coverageAvg, range:range, aeosNeedingSupport:aeosNeedingSupport };
+  }
+
+  function computeDeoAttention(){
+    var aeos = deoAeoRows();
+    var flags = [];
+    var declining = aeos.filter(function(a){ return netTrend(a.dcTrend).dir==='down'; });
+    if(declining.length){
+      flags.push({
+        count: declining.length,
+        icon:'&#128201;', title: declining.length+' markaz'+(declining.length===1?'':'s')+' show declining coaching trends this term',
+        desc:'Comparing each markaz’s DC trend against the start of the window — worth understanding whether it’s a staffing gap, a workload issue, or something else before it compounds.'
+      });
+    }
+    var lowCoverage = aeos.filter(function(a){ return a.coveragePct < 60; });
+    if(lowCoverage.length){
+      flags.push({
+        count: lowCoverage.length,
+        icon:'&#128203;', title: lowCoverage.length+' AEO'+(lowCoverage.length===1?'':'s')+' below 60% school coverage this term',
+        desc:'Coverage is the most direct lever here — an AEO not visiting/observing regularly is a staffing or workload question before it’s a scores question.'
+      });
+    }
+    var affectedAeos = aeos.filter(function(a){ return a.connectivityIssueSchools > 0; });
+    var affectedSchools = aeos.reduce(function(a,x){return a+x.connectivityIssueSchools;},0);
+    if(affectedAeos.length>=2){
+      flags.push({
+        count: affectedAeos.length,
+        icon:'&#128246;', title: 'Connectivity issues concentrated in '+affectedAeos.length+' of '+aeos.length+' markaz',
+        desc: affectedSchools+' school'+(affectedSchools===1?'':'s')+' affected across those markaz — a resourcing/infrastructure question, not something any one AEO can fix alone.'
+      });
+    }
+    flags.sort(function(a,b){ return b.count - a.count; });
+    return flags;
+  }
+
+  function renderDeoDistrict(){
+    var stats = computeDeoDistrictStats();
+    var aeos = stats.aeos;
+    var flags = computeDeoAttention();
+
+    var html = '';
+    html += crumbs();
+    html += '<div class="page-head"><div>'
+      +   '<h1>My District</h1>'
+      +   '<p>'+esc(DEO_DISTRICT.name)+' — how your markaz are doing as a whole, and where the district needs a decision from you. Not a ranking of AEOs.</p>'
+      + '</div></div>';
+
+    html += '<div class="stats k4">'
+      + '<div class="stat-card accent-primary"><div class="label">District DC average</div><div class="value">'+stats.districtDcAvg+'% '+trendHtml(stats.dcTrend)+'</div><div class="sub">across all markaz</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Coverage this term</div><div class="value">'+stats.coverageAvg+'%</div><div class="sub">schools actually observed</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Range across markaz</div><div class="value">'+stats.range.low+'%&ndash;'+stats.range.high+'%</div><div class="sub">lowest to highest AEO</div></div>'
+      + '<div class="stat-card accent-warning"><div class="label">AEOs needing support</div><div class="value">'+stats.aeosNeedingSupport+'</div><div class="sub">below 60% coverage</div></div>'
+      + '</div>';
+
+    html += '<div class="card" style="padding:22px; margin-bottom:28px;">'
+      + '<div class="sc-label" style="margin-bottom:4px;">District DC trend</div>'
+      + '<div style="font-size:12.5px; color:var(--muted-fg); margin-bottom:14px;">Averaged across all markaz, same 4-month window as everywhere else in this prototype</div>'
+      + svgSpark(stats.dcTrend, 320, 84)
+      + '</div>';
+
+    html += flags.length ? renderFlagCards(flags) : '';
+
+    html += '<div class="section" style="margin-top:32px;"><div class="section-head"><h2>Markaz</h2><span class="hint">Alphabetical, not ranked</span></div>';
+    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr>'
+      + '<th>AEO</th><th>Markaz</th><th>Schools</th><th>Teachers</th><th>Coverage</th><th>DC avg</th><th></th>'
+      + '</tr></thead><tbody>';
+    aeos.forEach(function(a){
+      var clickAttr = a.drillable ? ' data-goto-aeo-drill="1"' : ' data-goto-stub="'+esc(a.name+' — '+a.markaz)+'"';
+      html += '<tr'+clickAttr+'>'
+        + '<td><div class="row-name">'+esc(a.name)+'</div></td>'
+        + '<td>'+esc(a.markaz)+'</td>'
+        + '<td class="num">'+a.schools+'</td>'
+        + '<td class="num">'+a.teachers+'</td>'
+        + '<td class="num">'+a.coveragePct+'%</td>'
+        + '<td class="num">'+a.dcAvg+'%</td>'
+        + '<td><span class="chevron">&rsaquo;</span></td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div></div></div>';
+
+    html += '<div class="proto-note"><b>Prototype note:</b> Sadia Iqbal’s markaz (Adyala) is grounded in real TaleemHub data — the 11 schools and 45 teachers are a real, live roster; coverage/trend/connectivity are derived from her actual HOTS submissions on top of that real shell. Performance numbers and individual teachers are still fictional (no real names sit next to invented scores). The other two AEOs remain fully illustrative stubs. Cross-markaz rubric-consistency (are AEOs scoring similarly on similar things) is a real DEO need but isn’t modeled here — there’s no real per-AEO score-distribution data to compute it from honestly, so it’s left out rather than fabricated. No individual teacher or single-school data appears on this screen by default — drilling into a markaz is the only way to reach that level.</div>';
+    root.innerHTML = html;
+  }
+
+  function renderMinisterOverview(){
+    var aeos = deoAeoRows();
+    var rwpSchools = aeos.reduce(function(a,x){return a+x.schools;},0);
+    var rwpTeachers = aeos.reduce(function(a,x){return a+x.teachers;},0);
+    var rwpDue = aeos.reduce(function(a,x){return a+x.due;},0);
+
+    var html = '';
+    html += crumbs();
+    html += '<div class="page-head"><div>'
+      +   '<h1>Punjab Overview</h1>'
+      +   '<p>Every governed region reporting up to you — shown separately, never blended into one "Punjab" number.</p>'
+      + '</div></div>';
+
+    html += '<div class="proto-note" style="margin:0 0 24px;"><b>Why separate:</b> Rawalpindi and Moawin/Akhuwat run on different platforms with different frameworks (HOTS + Digital Coach vs. Zavia AI fidelity scoring) — their scores and coverage numbers are never merged or compared, per governance rules. Each region below is its own block.</div>';
+
+    PUNJAB_REGIONS.forEach(function(region){
+      html += '<div class="section"><div class="section-head"><h2>'+esc(region.name)+'</h2><span class="hint">'+esc(region.framework)+'</span></div>';
+      html += '<div style="font-size:13px; color:var(--muted-fg); margin:-8px 0 12px;">'+esc(region.note)+'</div>';
+
+      if(region.key==='rawalpindi'){
+        html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr>'
+          + '<th>District</th><th>AEOs</th><th>Schools</th><th>Teachers</th><th>Due for a visit</th><th></th>'
+          + '</tr></thead><tbody>'
+          + '<tr data-goto-deo-district="1">'
+            + '<td><div class="row-name">'+esc(DEO_DISTRICT.name)+'</div></td>'
+            + '<td class="num">'+aeos.length+'</td>'
+            + '<td class="num">'+rwpSchools+'</td>'
+            + '<td class="num">'+rwpTeachers+'</td>'
+            + '<td class="num">'+rwpDue+'</td>'
+            + '<td><span class="chevron">&rsaquo;</span></td>'
+          + '</tr>'
+          + '</tbody></table></div></div>';
+      } else {
+        html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr>'
+          + '<th>Cluster</th><th>Schools</th><th>Teachers</th><th>Due for a visit</th><th></th>'
+          + '</tr></thead><tbody>';
+        region.districts.forEach(function(d){
+          html += '<tr data-goto-stub="'+esc(region.name+' — '+d.name)+'">'
+            + '<td><div class="row-name">'+esc(d.name)+'</div></td>'
+            + '<td class="num">'+d.schools+'</td>'
+            + '<td class="num">'+d.teachers+'</td>'
+            + '<td class="num">'+d.due+'</td>'
+            + '<td><span class="chevron">&rsaquo;</span></td>'
+            + '</tr>';
+        });
+        html += '</tbody></table></div></div>';
+      }
+      html += '</div>';
+    });
+
+    root.innerHTML = html;
+  }
+
+  function renderStubDetail(){
+    var html = '';
+    html += crumbs();
+    html += '<div class="page-head"><div><h1>'+esc(state.stubLabel || 'Detail')+'</h1><p>Illustrative aggregate only.</p></div>'
+      + '<div class="actions"><button class="btn btn-ghost" data-goto="'+(state.role==='minister'?'minister-overview':'deo-district')+'">&larr; Back</button></div></div>';
+    html += '<div class="debrief-empty">Detailed drill-down data isn’t modeled for '+esc(state.stubLabel || 'this')+' in this prototype — only Sadia Iqbal’s markaz (Adyala) has real schools/teachers/HOTS data behind it. This card exists so the gap is honest rather than filled with fabricated numbers.</div>';
+    root.innerHTML = html;
+  }
+
+  function renderSchools(){
+    var totalTeachers = SCHOOLS.reduce(function(a,s){return a+s.teacherCount;},0);
+    var totalLp = SCHOOLS.reduce(function(a,s){return a+s.lpCount;},0);
+
+    var html = '';
+    html += crumbs();
+    html += '<div class="page-head"><div>'
+          +   '<h1>Schools</h1>'
+          +   '<p>Adyala markaz · Rawalpindi — how each school is doing. Not a ranking; ordered alphabetically.</p>'
+          + '</div></div>';
+
+    html += '<div class="stats">'
+      + '<div class="stat-card accent-primary"><div class="label">Schools</div><div class="value">'+SCHOOLS.length+'</div><div class="sub">in your roster</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Teachers</div><div class="value">'+totalTeachers+'</div><div class="sub">across all schools</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Lesson plans this month</div><div class="value">'+totalLp+'</div><div class="sub">generated markaz-wide</div></div>'
+      + '</div>';
+
+    // Ordered by real EMIS number — a neutral administrative ID, not a
+    // performance ranking (same non-ranking intent as the old alphabetical sort).
+    var sorted = SCHOOLS.slice().sort(function(a,b){ return a.emis.localeCompare(b.emis); });
+    html += '<div class="school-grid">';
+    sorted.forEach(function(s){
+      var connClass = s.connectivity==='Good' ? '' : s.connectivity==='Limited' ? 'warn' : 'bad';
+      html += '<div class="school-card" data-goto-school="'+s.id+'">'
+        + '<div><div class="sc-name">'+esc(s.name)+'</div><div class="sc-meta"><span>EMIS '+s.emis+'</span><span class="conn-badge '+connClass+'">'+s.connectivity+' connectivity</span></div></div>'
+        + '<div class="sc-primary-top"><span class="sc-label">Average score on Digital Coach</span>'
+          + '<span class="sc-metric-row"><span class="sc-value">'+s.dcScore+'%</span>'+trendHtml(s.dcTrend)+svgSpark(s.dcTrend)+'</span></div>'
+        + '<div class="sc-secondary"><span class="sc-label">Lesson plans, last 30 days</span>'
+          + '<span class="sc-metric-row"><span class="sc-secondary-val">'+s.lpCount+'</span>'+trendHtml(s.lpTrend)+svgSpark(s.lpTrend)+'</span></div>'
+        + '<div class="sc-foot"><span class="teacher-badge">'+s.teacherCount+' teacher'+(s.teacherCount===1?'':'s')+'</span><span class="chevron">&rsaquo;</span></div>'
+        + '</div>';
+    });
+    html += '</div>';
+
+    html += '<div class="proto-note"><b>Prototype note:</b> these 11 schools, their EMIS numbers, and teacher counts are real (pulled live from TaleemHub_DB for Adyala markaz, Rawalpindi) — connectivity, DC engagement, and lesson-plan activity are still illustrative. Ordered by EMIS, not ranked by performance — consistent with the competition-safe framing. DC engagement is primary, lesson-plan activity secondary — each pairs one number with one line-trend, no bar or duplicate encoding. No individual teacher data appears here — this is aggregate only.</div>';
+    root.innerHTML = html;
+  }
+
+  function renderSchoolDetail(){
+    var school = SCHOOLS.find(function(s){return s.id===state.schoolId;}) || SCHOOLS[0];
+    var teachers = (TEACHERS[school.id] || []);
+    var flagged = teachers.filter(function(t){return !isNotOnRumi(t) && needsSupport(t.dcScore);});
+    var notOnRumiGroup = teachers.filter(function(t){return isNotOnRumi(t);});
+    var onTrack = teachers.filter(function(t){return !isNotOnRumi(t) && !needsSupport(t.dcScore);}).slice().sort(function(a,b){return a.name.localeCompare(b.name);});
+    flagged.sort(function(a,b){return a.name.localeCompare(b.name);});
+    notOnRumiGroup.sort(function(a,b){return a.name.localeCompare(b.name);});
+
+    var html = '';
+    html += crumbs();
+    html += '<div class="page-head"><div><h1>'+esc(school.name)+'</h1><p>EMIS '+school.emis+' · '+teachers.length+' teacher'+(teachers.length===1?'':'s')+' on roster</p></div>'
+      + '<div class="actions"><button class="btn btn-ghost" data-goto="schools">&larr; All schools</button></div></div>';
+
+    // context before numbers
+    html += '<div class="context-row">'
+      + '<span class="context-chip">Avg. class size <b>'+school.avgClassSize+'</b></span>'
+      + '<span class="context-chip'+(school.connectivity!=='Good'?' warn':'')+'">Connectivity <b>'+school.connectivity+'</b></span>'
+      + '<span class="context-chip'+(parseInt(school.lastVisited)>=30?' warn':'')+'">Last AEO visit <b>'+school.lastVisited+'</b></span>'
+      + (notOnRumiGroup.length ? '<span class="context-chip warn">Not yet on Rumi <b>'+notOnRumiGroup.length+'</b></span>' : '')
+      + '</div>';
+
+    html += '<div class="stats">'
+      + '<div class="stat-card accent-primary"><div class="label">DC engagement</div><div class="value tile-metric-row"><span>'+school.dcScore+'%</span>'+trendHtml(school.dcTrend)+svgSpark(school.dcTrend)+'</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Lesson plans (mo.)</div><div class="value tile-metric-row"><span>'+school.lpCount+'</span>'+trendHtml(school.lpTrend)+svgSpark(school.lpTrend)+'</div></div>'
+      + '<div class="stat-card accent-warning"><div class="label">Needs support</div><div class="value">'+flagged.length+'</div><div class="sub">of '+teachers.length+' teachers</div></div>'
+      + '</div>';
+
+    html += '<div class="section"><div class="section-head"><h2>Lesson plan activity</h2><span class="hint">Repeats grouped — shows both activity and topic variety</span></div>';
+    html += '<div class="card"><ul class="lp-list">';
+    school.lessonPlans.forEach(function(lp){
+      html += '<li><div><div class="lp-title">'+esc(lp.title)+'</div></div><span class="lp-count">Generated '+lp.count+'x</span></li>';
+    });
+    html += '</ul></div></div>';
+
+    html += '<div class="section"><div class="section-head"><h2>Teachers</h2><span class="hint">Needing support, then not yet on Rumi, then on track — no scores shown</span></div>';
+    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr>'
+      + '<th>Teacher</th><th>Assignment</th><th>Last DC session</th><th></th>'
+      + '</tr></thead><tbody>';
+    function teacherRow(t){
+      var onRumi = !isNotOnRumi(t);
+      var flag = onRumi && needsSupport(t.dcScore);
+      var nameCell = isAggregate()
+        ? '<span class="masked">'+esc(t.subject)+' teacher</span>'
+        : '<div class="name-cell"><div class="avatar-sm">'+initials(t.name)+'</div><div class="row-name">'+esc(t.name)+'</div></div>';
+      var clickAttr = isAggregate() ? '' : ' data-goto-history="'+t.id+'"';
+      var lastSessionCell = onRumi ? (t.daysSince+' day'+(t.daysSince===1?'':'s')+' ago') : '<span class="no-flag">—</span>';
+      var statusCell = !onRumi
+        ? '<span class="not-on-rumi">Not yet on Rumi</span>'
+        : (flag ? '<span class="needs-support">Needs support</span>' : '<span class="no-flag">—</span>');
+      return '<tr class="'+(isAggregate()?'static':'')+'"'+clickAttr+'>'
+        + '<td>'+nameCell+'</td>'
+        + '<td>'+esc(t.subject)+'</td>'
+        + '<td>'+lastSessionCell+'</td>'
+        + '<td>'+statusCell
+        + (flag ? ' <button class="btn btn-accent btn-sm" style="margin-left:8px;" data-action="schedule" data-tname="'+esc(t.name)+'">Schedule session</button>' : '')
+        + (!isAggregate() ? '<span class="chevron">&rsaquo;</span>' : '')
+        + '</td>'
+        + '</tr>';
+    }
+    flagged.forEach(function(t){ html += teacherRow(t); });
+    notOnRumiGroup.forEach(function(t){ html += teacherRow(t); });
+    onTrack.forEach(function(t){ html += teacherRow(t); });
+    html += '</tbody></table></div></div></div>';
+
+    if(isAggregate()){
+      html += '<div class="proto-note"><b>Aggregate view:</b> individual teacher names and DC session history are hidden in this visibility mode — flip to "Individual" in the header to open a teacher’s report history.</div>';
+    }
+    root.innerHTML = html;
+  }
+
+  function renderTeachers(){
+    var all = allTeachersFlat();
+    var flaggedTotal = all.filter(function(t){return !isNotOnRumi(t) && needsSupport(t.dcScore);}).length;
+    var staleTotal = all.filter(function(t){return !isNotOnRumi(t) && t.daysSince>=STALE_DAYS;}).length;
+    var notOnRumiTotal = all.filter(function(t){return isNotOnRumi(t);}).length;
+
+    var filtered = all.filter(function(t){
+      if(state.teacherFilter==='needs-support' && !(!isNotOnRumi(t) && needsSupport(t.dcScore))) return false;
+      if(state.teacherFilter==='stale' && !(!isNotOnRumi(t) && t.daysSince>=STALE_DAYS)) return false;
+      if(state.teacherFilter==='not-on-rumi' && !isNotOnRumi(t)) return false;
+      if(state.teacherFilter==='due' && !(isNotOnRumi(t) || needsSupport(t.dcScore) || t.daysSince>=STALE_DAYS)) return false;
+      if(state.teacherSearch){
+        var q = state.teacherSearch.toLowerCase();
+        if(t.name.toLowerCase().indexOf(q)===-1 && t.schoolName.toLowerCase().indexOf(q)===-1) return false;
+      }
+      return true;
+    });
+    filtered.sort(function(a,b){ return a.name.localeCompare(b.name); });
+
+    var html = '';
+    html += crumbs();
+    html += '<div class="page-head"><div><h1>Teachers</h1><p>All teachers across every school in your markaz.</p></div></div>';
+
+    html += '<div class="filter-row">'
+      + '<button class="chip'+(state.teacherFilter==='all'?' active':'')+'" data-filter="all">All <span class="n">'+all.length+'</span></button>'
+      + '<button class="chip'+(state.teacherFilter==='needs-support'?' active':'')+'" data-filter="needs-support">Needs support <span class="n">'+flaggedTotal+'</span></button>'
+      + '<button class="chip'+(state.teacherFilter==='stale'?' active':'')+'" data-filter="stale">30+ days quiet <span class="n">'+staleTotal+'</span></button>'
+      + '<button class="chip'+(state.teacherFilter==='not-on-rumi'?' active':'')+'" data-filter="not-on-rumi">Not yet on Rumi <span class="n">'+notOnRumiTotal+'</span></button>'
+      + '<input class="search" type="text" placeholder="Search teacher or school…" id="teacherSearch" value="'+esc(state.teacherSearch)+'">'
+      + '</div>';
+
+    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr>'
+      + '<th>Teacher</th><th>School</th><th>Assignment</th><th>Last DC session</th><th></th>'
+      + '</tr></thead><tbody>';
+    if(filtered.length===0){
+      html += '<tr class="static"><td colspan="5" style="text-align:center; color:var(--muted-fg); padding:32px;">No teachers match this filter.</td></tr>';
+    }
+    filtered.forEach(function(t){
+      var onRumi = !isNotOnRumi(t);
+      var flag = onRumi && needsSupport(t.dcScore);
+      var nameCell = isAggregate()
+        ? '<span class="masked">'+esc(t.subject)+' teacher</span>'
+        : '<div class="name-cell"><div class="avatar-sm">'+initials(t.name)+'</div><div class="row-name">'+esc(t.name)+'</div></div>';
+      var lastSessionCell = onRumi ? (t.daysSince+' day'+(t.daysSince===1?'':'s')+' ago') : '<span class="no-flag">—</span>';
+      var statusCell = !onRumi
+        ? '<span class="not-on-rumi">Not yet on Rumi</span>'
+        : (flag ? '<span class="needs-support">Needs support</span>' : '<span class="no-flag">—</span>');
+      html += '<tr class="'+(isAggregate()?'static':'')+'"'+(isAggregate()?'':' data-goto-history="'+t.tid+'"')+'>'
+        + '<td>'+nameCell+'</td>'
+        + '<td>'+esc(t.schoolName)+'</td>'
+        + '<td>'+esc(t.subject)+'</td>'
+        + '<td>'+lastSessionCell+'</td>'
+        + '<td>'+statusCell+(!isAggregate()?'<span class="chevron">&rsaquo;</span>':'')+'</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div></div>';
+
+    html += '<div class="proto-note"><b>Prototype note:</b> raw DC scores never appear here — only the derived "Needs support" flag (below '+NEEDS_SUPPORT_THRESHOLD+'%) and the "30+ days quiet" filter. In Aggregate visibility mode, names are masked entirely.</div>';
+    root.innerHTML = html;
+    wireTeacherSearch();
+  }
+
+  // Rebuilding the Teachers screen (typing in search, clicking a filter chip)
+  // replaces the <input> node via innerHTML — so the listener and cursor
+  // position must be re-applied every time, not just on the initial render().
+  function wireTeacherSearch(){
+    var searchInput = document.getElementById('teacherSearch');
+    if(!searchInput) return;
+    var pos = searchInput.selectionStart;
+    searchInput.focus();
+    if(pos != null) searchInput.setSelectionRange(pos, pos);
+    searchInput.addEventListener('input', function(e){
+      state.teacherSearch = e.target.value;
+      renderTeachers();
+    });
+  }
+
+  function markazHistoryRows(){
+    var rows = [];
+    Object.keys(TEACHERS).forEach(function(sid){
+      var school = SCHOOLS.find(function(s){return s.id===sid;});
+      TEACHERS[sid].forEach(function(t){
+        (t.history || []).forEach(function(h){
+          rows.push({name:t.name, school:school.name, date:h.date, type:h.type, note:h.note, tid:t.id});
+        });
+      });
+    });
+    rows.sort(function(a,b){ return parseRelativeDays(a.date) - parseRelativeDays(b.date); });
+    return rows;
+  }
+
+  function renderHistoryList(rows, showLink){
+    var html = '<div class="card"><ul class="history-list">';
+    if(rows.length===0){
+      html += '<li class="attn-empty">No sessions logged yet.</li>';
+    }
+    rows.forEach(function(r){
+      html += '<li class="history-item"><div class="history-date">'+esc(r.date)+'</div><div class="history-body">'
+        + '<div class="history-top">'+(r.name && !isAggregate() ? '<span class="history-name">'+esc(r.name)+'</span>' : (r.name?'<span class="history-name masked">'+esc(r.school)+' teacher</span>':''))+' <span class="history-type">'+esc(r.type)+'</span>'+(r.school && !r.name ? ' <span class="history-name">'+esc(r.school)+'</span>' : (r.name?' <span style="color:var(--muted-fg);font-size:12px;">'+esc(r.school)+'</span>':''))+'</div>'
+        + '<div class="history-note">'+esc(r.note)+'</div>'
+        + (showLink ? '<span class="history-link" title="Prototype: opens the full observation/coaching record">View full record &rarr;</span>' : '')
+        + '</div></li>';
+    });
+    html += '</ul></div>';
+    return html;
+  }
+
+  function renderTeacherHistory(){
+    var all = allTeachersFlat();
+    var flat = all.find(function(t){return t.tid===state.teacherId;});
+    var school = SCHOOLS.find(function(s){return s.id===(flat?flat.sid:null);});
+    var full = (TEACHERS[flat?flat.sid:'s1']||[]).find(function(t){return t.id===state.teacherId;}) || {history:[]};
+
+    var origin = state.teacherHistoryOrigin;
+    var backScreen = 'teachers', backLabel = 'All teachers';
+    if(origin && origin.screen==='school-detail'){ backScreen = 'school-detail'; backLabel = school ? school.name : 'School'; }
+    else if(origin && origin.screen==='attention'){ backScreen = 'attention'; backLabel = 'My Patch'; }
+
+    var onRumi = !isNotOnRumi(flat || {});
+    var rich = onRumi && full.richProfile;
+
+    var html = '';
+    html += crumbs();
+    html += '<div class="page-head"><div><h1>'+esc(flat?flat.name:'Teacher')+'</h1><p>'+esc(flat?flat.subject:'')+' · '+esc(school?school.name:'')+(onRumi && !rich?' · reverse-chronological report history':'')+'</p></div>'
+      + '<div class="actions">'+(onRumi && needsSupport(flat?flat.dcScore:100) ? '<button class="btn btn-accent" data-action="schedule" data-tname="'+esc(flat?flat.name:'')+'">Schedule session</button>' : '')+'<button class="btn btn-ghost" data-goto="'+backScreen+'">&larr; '+esc(backLabel)+'</button></div></div>';
+
+    if(!onRumi){
+      html += '<div class="debrief-empty">On your roster but not yet registered on Rumi — there\'s no Digital Coach or observation history to show yet.</div>';
+    } else if(rich){
+      html += renderTeacherProfile(full);
+    } else {
+      html += renderHistoryList(full.history.map(function(h){ return {name:flat?flat.name:'', school:school?school.name:'', date:h.date, type:h.type, note:h.note}; }), true);
+    }
+    root.innerHTML = html;
+  }
+
+  // ---- Rich teacher profile — built for ONE teacher only (Ghazala Riaz,
+  // GPS Hayal, TEACHERS.s10[0].richProfile===true) as a full example of what
+  // this screen could be everywhere; every other teacher keeps the plain
+  // history list above unchanged.
+  function trendBand(points){
+    var avg = points.reduce(function(a,p){return a+p.value;},0) / points.length;
+    if(avg>=70) return {name:'high', color:'#22C55E'};
+    if(avg>=45) return {name:'mid', color:'#F59E0B'};
+    return {name:'low', color:'#E86835'}; // orange, never red — non-punitive palette
+  }
+
+  // Qualitative trend line: shape + one overall color are the entire signal.
+  // Deliberately no y-axis numbers and no value labels on the line itself —
+  // only date labels beneath it.
+  function trendVisualChart(points){
+    var w=520, h=120, padX=16, padY=16, padBottom=28;
+    var vals = points.map(function(p){return p.value;});
+    var min=Math.min.apply(null,vals), max=Math.max.apply(null,vals);
+    if(min===max){ min-=1; max+=1; }
+    var innerH = h-padY-padBottom;
+    var xs=function(i){ return points.length===1 ? w/2 : (w-2*padX)*i/(points.length-1)+padX; };
+    var ys=function(v){ return padY + innerH*(1-(v-min)/(max-min)); };
+    var line = points.map(function(p,i){ return (i?'L':'M')+xs(i).toFixed(1)+' '+ys(p.value).toFixed(1); }).join(' ');
+    var area = 'M'+xs(0).toFixed(1)+' '+(h-padBottom)+' '+points.map(function(p,i){ return 'L'+xs(i).toFixed(1)+' '+ys(p.value).toFixed(1); }).join(' ')+' L'+xs(points.length-1).toFixed(1)+' '+(h-padBottom)+' Z';
+    var band = trendBand(points);
+    var labels = points.map(function(p,i){ return '<text x="'+xs(i).toFixed(1)+'" y="'+(h-8)+'" text-anchor="middle" class="trend-chart-label">'+esc(p.label)+'</text>'; }).join('');
+    return '<svg width="100%" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMidYMid meet" style="display:block;">'
+      + '<path d="'+area+'" fill="'+band.color+'" fill-opacity="0.12" stroke="none"/>'
+      + '<path d="'+line+'" fill="none" stroke="'+band.color+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'
+      + labels
+      + '</svg>';
+  }
+
+  function renderTeacherProfile(t){
+    var html = '';
+    html += '<div class="mini-stats">'
+      + '<div class="mini-stat-card tint-a"><div class="mini-stat-label">DC Sessions</div><div class="mini-stat-value">'+t.dcSessionCount+'</div></div>'
+      + '<div class="mini-stat-card tint-b"><div class="mini-stat-label">Trainings Completed</div><div class="mini-stat-value">'+t.trainings.completed+'/'+t.trainings.total+'</div></div>'
+      + '<div class="mini-stat-card tint-c"><div class="mini-stat-label">Mono-grade LPs</div><div class="mini-stat-value">'+t.monoLpCount+'</div></div>'
+      + '<div class="mini-stat-card tint-d"><div class="mini-stat-label">Multi-grade LPs</div><div class="mini-stat-value">'+t.multiLpCount+'</div></div>'
+      + '</div>';
+
+    html += '<div class="card" style="padding:20px 22px; margin-bottom:24px;">'
+      + '<div class="sc-label" style="margin-bottom:2px;">DC session trend — last 2 weeks</div>'
+      + '<div style="font-size:12.5px; color:var(--muted-fg); margin-bottom:10px;">A visual read only — no scores on this chart. Shape and color show direction, not a number.</div>'
+      + trendVisualChart(t.dcTrendPoints)
+      + '</div>';
+
+    html += '<div class="section"><div class="section-head"><h2>Action items from last 3 sessions</h2></div><div class="card">';
+    t.actionItems.forEach(function(a){
+      html += '<div class="action-item-row">'
+        + '<span class="action-item-text">'+esc(a.text)+'</span>'
+        + (a.sessionCount>1 ? '<span class="action-item-count">&times;'+a.sessionCount+' sessions</span>' : '')
+        + '</div>';
+    });
+    html += '</div></div>';
+
+    html += '<div class="section"><div class="section-head"><h2>Last 5 lesson plans</h2></div><div class="card"><ul class="lp-list">';
+    t.recentLessonPlans.forEach(function(lp){
+      html += '<li><div><div class="lp-title">'+esc(lp.grade)+' · '+esc(lp.subject)+' — '+esc(lp.topic)+'</div>'
+        + '<div class="lp-topic">'+(lp.type==='multi'?'Multi-grade':'Mono-grade')+'</div></div>'
+        + '<button class="btn btn-ghost btn-sm" data-action="view-pdf" data-lp-title="'+esc(lp.topic)+'">View PDF</button></li>';
+    });
+    html += '</ul></div></div>';
+
+    return html;
+  }
+
+  function renderMarkazHistory(){
+    var rows = markazHistoryRows();
+    var html = '';
+    html += crumbs();
+    html += '<div class="page-head"><div><h1>Markaz report history</h1><p>Every Digital Coach session and coaching visit across your markaz, most recent first.</p></div>'
+      + '<div class="actions"><button class="btn btn-ghost" data-goto="attention">&larr; My Patch</button></div></div>';
+    html += renderHistoryList(rows, true);
+    root.innerHTML = html;
+  }
+
+  function debriefPill(status){
+    var label = status==='done' ? 'Debrief done' : status==='pending' ? 'Debrief pending' : 'Debrief skipped';
+    return '<span class="debrief-pill '+status+'">'+label+'</span>';
+  }
+
+  function renderMyForms(){
+    var forms = MY_FORMS.slice().sort(function(a,b){ return parseRelativeDays(a.date) - parseRelativeDays(b.date); });
+    var pendingCount = forms.filter(function(f){return f.debriefStatus==='pending';}).length;
+
+    var html = '';
+    html += crumbs();
+    html += '<div class="page-head"><div>'
+          +   '<h1>My HOTS forms</h1>'
+          +   '<p>Every classroom observation you’ve submitted via /observe, most recent first — your own record, not shared with teachers.</p>'
+          + '</div></div>';
+
+    html += '<div class="stats">'
+      + '<div class="stat-card accent-primary"><div class="label">Forms submitted</div><div class="value">'+forms.length+'</div><div class="sub">this term</div></div>'
+      + '<div class="stat-card accent-warning"><div class="label">Debriefs pending</div><div class="value">'+pendingCount+'</div><div class="sub">still to hold with the teacher</div></div>'
+      + '</div>';
+
+    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr>'
+      + '<th>Teacher</th><th>School</th><th>Submitted</th><th>Overall</th><th>Debrief</th><th></th>'
+      + '</tr></thead><tbody>';
+    forms.forEach(function(f){
+      html += '<tr data-goto-form="'+f.id+'">'
+        + '<td><div class="row-name">'+esc(f.teacher)+'</div></td>'
+        + '<td>'+esc(f.school)+'</td>'
+        + '<td>'+esc(f.date)+'</td>'
+        + '<td><span class="hots-pct">'+f.overallPct+'%</span></td>'
+        + '<td>'+debriefPill(f.debriefStatus)+'</td>'
+        + '<td><span class="chevron">&rsaquo;</span></td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div></div>';
+
+    html += '<div class="proto-note"><b>Prototype note:</b> this is the gap you flagged — right now the portal has no view of an AEO’s own submitted HOTS forms. Data here mirrors <code>coaching_sessions</code> filtered to <code>observer_user_id</code> = you, <code>observation_type = \'leader_observation\'</code>.</div>';
+    root.innerHTML = html;
+  }
+
+  function renderFormDetail(){
+    var f = MY_FORMS.find(function(x){return x.id===state.formId;}) || MY_FORMS[0];
+    var html = '';
+    html += crumbs();
+    html += '<div class="page-head"><div><h1>'+esc(f.teacher)+'</h1><p>'+esc(f.school)+' · HOTS observation · submitted '+esc(f.date)+'</p></div>'
+      + '<div class="actions">'+debriefPill(f.debriefStatus)+'<button class="btn btn-ghost" data-goto="my-forms">&larr; All forms</button></div></div>';
+
+    html += '<div class="stats" style="grid-template-columns:1fr;">'
+      + '<div class="stat-card accent-primary"><div class="label">Overall score</div><div class="value">'+f.overallPct+'%</div><div class="sub">of 48 marks across 16 indicators, 5 areas</div></div>'
+      + '</div>';
+
+    html += '<div class="hots-summary-card">'+esc(f.summary)+'</div>';
+
+    HOTS_AREAS.forEach(function(area){
+      var areaMax = area.indicators.length*3;
+      var areaScore = area.indicators.reduce(function(a,ind){ return a + (f.scores[ind.id]||0); },0);
+      html += '<div class="hots-area"><div class="hots-area-head"><span>'+esc(area.title)+'</span><span class="area-score">'+areaScore+' / '+areaMax+'</span></div>';
+      html += '<div class="card">';
+      area.indicators.forEach(function(ind){
+        var score = f.scores[ind.id];
+        var pips = '';
+        for(var p=1;p<=3;p++){ pips += '<span class="hots-pip'+(p<=score?' filled'+(score===0?' zero':''):'')+'"></span>'; }
+        html += '<div class="hots-indicator"><div class="hots-ind-top">'
+          + '<div class="hots-ind-name">'+esc(ind.name)+'</div>'
+          + '<div class="hots-pips">'+pips+'</div>'
+          + '</div>';
+        if(f.evidence[ind.id]) html += '<div class="hots-ind-evidence"><b>Evidence:</b> '+esc(f.evidence[ind.id])+'</div>';
+        if(f.improvement[ind.id]) html += '<div class="hots-ind-improve"><b>Suggested improvement:</b> '+esc(f.improvement[ind.id])+'</div>';
+        html += '</div>';
+      });
+      html += '</div></div>';
+    });
+
+    html += '<div class="section-head" style="margin-top:8px;"><h2>Your debrief</h2><span class="hint">Private to you — the teacher never sees this</span></div>';
+    html += renderObserverDebrief(f);
+
+    html += '<div class="hots-focus-card"><h3>Focus area — '+esc(f.focusArea.title)+'</h3>'
+      + '<p><b style="color:var(--fg);">Why:</b> '+esc(f.focusArea.why)+'</p>'
+      + '<p><b style="color:var(--fg);">Try:</b> '+esc(f.focusArea.tryText)+'</p></div>';
+
+    html += '<div class="proto-note"><b>Prototype note:</b> "Your debrief" mirrors <code>coaching_sessions.analysis_data.observer_debrief</code> — the officer-only "coach-the-coach" card (praise / wins / concern / try / value). Per product rule, this is for the AEO alone, distinct from what the teacher receives, and it never includes the internal rubric booleans used only for the A/B study.</div>';
+
+    root.innerHTML = html;
+  }
+
+  function renderObserverDebrief(f){
+    var d = f.observerDebrief;
+    if(!d){
+      var msg = f.debriefStatus==='pending'
+        ? 'Debrief not yet held — this will appear once you record it in /observe.'
+        : 'Debrief was skipped for this session.';
+      return '<div class="debrief-empty">'+esc(msg)+'</div>';
+    }
+    var hasConcern = !!d.concern;
+    var html = '<div class="debrief-card '+(hasConcern?'concern':'clean')+'">';
+    if(d.praiseLine){
+      html += '<div class="debrief-praise">“'+esc(d.praiseLine)+'”</div>';
+    }
+    if(d.wins && d.wins.length){
+      html += '<div class="debrief-section"><div class="label">What went well in your debrief</div>';
+      d.wins.forEach(function(w){
+        html += '<div class="debrief-win"><span class="dot">&#8226;</span><div class="txt"><b>'+esc(w.behaviour)+'</b><span>'+esc(w.evidence)+'</span></div></div>';
+      });
+      html += '</div>';
+    }
+    if(hasConcern){
+      html += '<div class="debrief-section"><div class="label">Worth a second look</div><div class="debrief-concern-box">'
+        + '<p><b>What happened:</b> '+esc(d.concern.whatHappened)+'</p>'
+        + '<p><b>Why it matters:</b> '+esc(d.concern.whyItMatters)+'</p>'
+        + '<p><b>Instead:</b> '+esc(d.concern.instead)+'</p>'
+        + '</div></div>';
+    } else if(d.tryMove){
+      html += '<div class="debrief-section"><div class="label">One thing to try next time</div>'
+        + '<div class="debrief-win"><span class="dot" style="color:var(--primary-light);">&#8594;</span><div class="txt"><b>'+esc(d.tryMove.move)+'</b><span>'+esc(d.tryMove.evidence)+' — '+esc(d.tryMove.instead)+'</span></div></div></div>';
+    }
+    if(d.value){
+      html += '<div class="debrief-value">'+esc(d.value)+'</div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function updateNav(){
+    // .nav-btn covers both the desktop top tabs and the mobile bottom tab bar —
+    // they mirror the same nav, so both need the active state and badge count.
+    // Nav buttons are also tagged data-role — only the buttons for the
+    // currently-viewed role show at all (AEO tabs hidden while viewing as DEO, etc).
+    document.querySelectorAll('.nav-btn').forEach(function(b){
+      var forThisRole = !b.dataset.role || b.dataset.role===state.role;
+      b.style.display = forThisRole ? '' : 'none';
+      var isAttn = b.dataset.nav==='attention' && (state.screen==='attention' || state.screen==='markaz-history');
+      var isSchoolsGroup = b.dataset.nav==='schools' && (state.screen==='schools' || state.screen==='school-detail');
+      var isTeachersGroup = b.dataset.nav==='teachers' && (state.screen==='teachers' || state.screen==='teacher-history');
+      var isFormsGroup = b.dataset.nav==='my-forms' && (state.screen==='my-forms' || state.screen==='form-detail');
+      var isDeoGroup = b.dataset.nav==='deo-district' && state.screen==='deo-district';
+      var isMinisterGroup = b.dataset.nav==='minister-overview' && state.screen==='minister-overview';
+      b.classList.toggle('active', isAttn || isSchoolsGroup || isTeachersGroup || isFormsGroup || isDeoGroup || isMinisterGroup);
+    });
+    var attnCount = computeAttention().length;
+    document.querySelectorAll('.attn-count').forEach(function(el){ el.textContent = attnCount; });
+
+    document.querySelectorAll('.role-switch-btn').forEach(function(b){
+      b.classList.toggle('active', b.dataset.roleSwitch===state.role);
+    });
+    // The Aggregate/Individual toggle only means something at the AEO level —
+    // it masks individual teacher identities, which higher roles never see anyway.
+    var visToggle = document.querySelector('.visibility-toggle');
+    if(visToggle) visToggle.style.display = state.role==='aeo' ? '' : 'none';
+    document.getElementById('visAggBtn').classList.toggle('active', state.visibility==='aggregate');
+    document.getElementById('visIndBtn').classList.toggle('active', state.visibility==='individual');
+
+    var identity = ROLE_IDENTITY[state.role];
+    document.getElementById('rolePill').textContent = identity.rolePill;
+    document.getElementById('userName').textContent = identity.name;
+    document.getElementById('userRoleLine').textContent = identity.roleLine;
+    document.getElementById('userAvatar').textContent = identity.initials;
+  }
+
+  function render(){
+    updateNav();
+    root.classList.remove('fade-in');
+    void root.offsetWidth;
+    root.classList.add('fade-in');
+    if(state.screen==='attention') renderAttention();
+    else if(state.screen==='schools') renderSchools();
+    else if(state.screen==='school-detail') renderSchoolDetail();
+    else if(state.screen==='teachers') renderTeachers();
+    else if(state.screen==='teacher-history') renderTeacherHistory();
+    else if(state.screen==='markaz-history') renderMarkazHistory();
+    else if(state.screen==='my-forms') renderMyForms();
+    else if(state.screen==='form-detail') renderFormDetail();
+    else if(state.screen==='deo-district') renderDeoDistrict();
+    else if(state.screen==='minister-overview') renderMinisterOverview();
+    else if(state.screen==='stub-detail') renderStubDetail();
+    window.scrollTo(0,0);
+  }
+
+  document.addEventListener('click', function(e){
+    // Checked first because "Schedule session" buttons sit inside clickable
+    // table rows (data-goto-history) — without this ordering, the ancestor
+    // row's handler fires first and swallows the button entirely.
+    var scheduleBtn = e.target.closest('[data-action="schedule"]');
+    if(scheduleBtn){
+      e.stopPropagation();
+      alert('Prototype action: this would open a scheduling flow for '+scheduleBtn.dataset.tname+' — the current portal is read-only, so this closes that loop.');
+      return;
+    }
+    var viewPdfBtn = e.target.closest('[data-action="view-pdf"]');
+    if(viewPdfBtn){
+      e.stopPropagation();
+      alert('Prototype action: this would open the PDF for "'+viewPdfBtn.dataset.lpTitle+'" — useful for multi-grade lesson plans especially, since mono-grade already gets printouts.');
+      return;
+    }
+    var visBtn = e.target.closest('[data-visibility]');
+    if(visBtn){
+      state.visibility = visBtn.dataset.visibility;
+      render(); return;
+    }
+    var roleSwitchBtn = e.target.closest('[data-role-switch]');
+    if(roleSwitchBtn){
+      state.role = roleSwitchBtn.dataset.roleSwitch;
+      state.screen = state.role==='aeo' ? 'attention' : state.role==='deo' ? 'deo-district' : 'minister-overview';
+      render(); return;
+    }
+    var aeoDrillBtn = e.target.closest('[data-goto-aeo-drill]');
+    if(aeoDrillBtn){
+      state.screen = 'attention';
+      render(); return;
+    }
+    var deoDistrictBtn = e.target.closest('[data-goto-deo-district]');
+    if(deoDistrictBtn){
+      state.screen = 'deo-district';
+      render(); return;
+    }
+    var stubBtn = e.target.closest('[data-goto-stub]');
+    if(stubBtn){
+      state.stubLabel = stubBtn.dataset.gotoStub;
+      state.screen = 'stub-detail';
+      render(); return;
+    }
+    var navBtn = e.target.closest('.nav-btn[data-nav]');
+    if(navBtn){
+      state.screen = navBtn.dataset.nav;
+      render(); return;
+    }
+    var gotoBtn = e.target.closest('[data-goto]');
+    if(gotoBtn){
+      state.screen = gotoBtn.dataset.goto;
+      render(); return;
+    }
+    var schoolRow = e.target.closest('[data-goto-school]');
+    if(schoolRow){
+      state.schoolId = schoolRow.dataset.gotoSchool;
+      state.screen = 'school-detail';
+      render(); return;
+    }
+    var histBtn = e.target.closest('[data-goto-history]');
+    if(histBtn){
+      if(isAggregate()) return;
+      // Remember where this drill-down started so "back" can return to the
+      // school/list the AEO actually came from, not always the global list.
+      state.teacherHistoryOrigin = { screen: state.screen, schoolId: state.schoolId };
+      state.teacherId = histBtn.dataset.gotoHistory;
+      state.screen = 'teacher-history';
+      render(); return;
+    }
+    var formRow = e.target.closest('[data-goto-form]');
+    if(formRow){
+      state.formId = formRow.dataset.gotoForm;
+      state.screen = 'form-detail';
+      render(); return;
+    }
+    var filteredTeachersBtn = e.target.closest('[data-goto-filtered-teachers]');
+    if(filteredTeachersBtn){
+      var wantedFilter = filteredTeachersBtn.dataset.gotoFilteredTeachers;
+      state.screen = 'teachers';
+      state.teacherFilter = (wantedFilter && wantedFilter !== '1') ? wantedFilter : 'needs-support';
+      render(); return;
+    }
+    var filterChip = e.target.closest('[data-filter]');
+    if(filterChip){
+      state.teacherFilter = filterChip.dataset.filter;
+      renderTeachers();
+      return;
+    }
+  });
+
+  render();
+})();
+</script>
