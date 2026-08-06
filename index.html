@@ -849,18 +849,43 @@
   // coveragePct/lastActivityDays/dcTrend/connectivityIssueSchools are the DEO-
   // altitude fields (coverage/activity/trend/systemic gap) — deliberately NOT
   // just more AEO-level detail rolled up. See computeDeoDistrictStats().
+  // coveragePct is a DERIVED field, computed in deoAeoRows() as
+  // visitsThisTerm / (schools*2) * 100 — the real cadence is 2 visits per
+  // school per month (confirmed), so "2 visits per school" is the actual
+  // completion target, not distinct-schools-touched. visitsThisTerm is the
+  // raw fact stored per markaz; coveragePct is never hand-set here so the
+  // two numbers can't drift out of sync with each other.
   var DEO_DISTRICT = {
     name:'Rawalpindi District',
     aeos:[
       {id:'aeo-adyala', name:'Sadia Iqbal', markaz:'Adyala', drillable:true,
         schools:SCHOOLS.length, teachers:SCHOOLS.reduce(function(a,s){return a+s.teacherCount;},0),
-        dcAvg:null, lpTotal:null, due:null, coveragePct:null, lastActivityDays:null, dcTrend:null, connectivityIssueSchools:null},
+        dcAvg:null, lpTotal:null, due:null, visitsThisTerm:null, lastActivityDays:null, dcTrend:null, connectivityIssueSchools:null},
       {id:'aeo-kahuta', name:'Imran Sethi', markaz:'Kahuta', drillable:false,
         schools:6, teachers:38, dcAvg:71, lpTotal:44, due:9,
-        coveragePct:55, lastActivityDays:12, dcTrend:[74,72,71,71], connectivityIssueSchools:2},
+        visitsThisTerm:7, lastActivityDays:12, dcTrend:[74,72,71,71], connectivityIssueSchools:2},
       {id:'aeo-gujarkhan', name:'Farah Bukhari', markaz:'Gujar Khan', drillable:false,
         schools:8, teachers:44, dcAvg:65, lpTotal:57, due:14,
-        coveragePct:38, lastActivityDays:26, dcTrend:[70,68,66,65], connectivityIssueSchools:3},
+        visitsThisTerm:6, lastActivityDays:26, dcTrend:[70,68,66,65], connectivityIssueSchools:3},
+      // Real school/teacher shell (school names, EMIS, teacher counts) verified
+      // live against TaleemHub_DB.users (role='AEO') + schools, per D2 in
+      // DEO_PORTAL_EXECUTION_PLAN.md. Performance numbers (dcAvg, visits, trend,
+      // connectivity) are still illustrative — same "real structure, fictional
+      // performance" pattern as Adyala.
+      {id:'aeo-rwpcantt', name:'Bilal Anwar', markaz:'Rawalpindi Cantt', drillable:false,
+        schools:11, teachers:53, dcAvg:69, lpTotal:52, due:11,
+        visitsThisTerm:14, lastActivityDays:15, dcTrend:[71,70,69,69], connectivityIssueSchools:1},
+      {id:'aeo-bassali', name:'Nasreen Akhtar', markaz:'Bassali', drillable:false,
+        schools:13, teachers:52, dcAvg:73, lpTotal:60, due:10,
+        visitsThisTerm:16, lastActivityDays:9, dcTrend:[70,71,72,73], connectivityIssueSchools:2},
+      {id:'aeo-chakbelikhan', name:'Waseem Tariq', markaz:'Chak Beli Khan', drillable:false,
+        schools:8, teachers:20, dcAvg:60, lpTotal:22, due:6,
+        visitsThisTerm:10, lastActivityDays:20, dcTrend:[66,64,62,60], connectivityIssueSchools:2},
+      // Shakrial has real school/teacher data but no matching role='AEO' row in
+      // TaleemHub_DB — flagged rather than fabricating a name, per D2.
+      {id:'aeo-shakrial', name:'(AEO unassigned)', aeoAssignmentUnclear:true, markaz:'Shakrial', drillable:false,
+        schools:8, teachers:29, dcAvg:58, lpTotal:24, due:7,
+        visitsThisTerm:7, lastActivityDays:31, dcTrend:[64,62,60,58], connectivityIssueSchools:1},
     ]
   };
   var PUNJAB_REGIONS = [
@@ -1190,20 +1215,28 @@
     root.innerHTML = html;
   }
 
+  // coveragePct = visitsThisTerm / (schools*2) * 100 — real cadence is 2
+  // visits per school per month (confirmed), so a markaz's full monthly
+  // target is schools*2 visits. Computed here for every AEO row (not
+  // hand-set in DEO_DISTRICT) so it can never drift out of sync with
+  // visitsThisTerm.
   function deoAeoRows(){
     var patchStats = computePatchStats();
     return DEO_DISTRICT.aeos.map(function(a){
-      if(a.id!=='aeo-adyala') return a;
-      // Coverage/activity/trend derived for real from Sadia's actual data,
-      // rather than hardcoded like the stub AEOs — same fields, real source.
-      var schoolsObserved = {};
-      MY_FORMS.forEach(function(f){ schoolsObserved[f.school] = true; });
-      var coveragePct = Math.round(Object.keys(schoolsObserved).length / SCHOOLS.length * 100);
-      var lastActivityDays = Math.min.apply(null, MY_FORMS.map(function(f){ return parseRelativeDays(f.date); }));
-      var connectivityIssueSchools = SCHOOLS.filter(function(s){ return s.connectivity!=='Good'; }).length;
-      return {id:a.id, name:a.name, markaz:a.markaz, drillable:a.drillable, schools:a.schools, teachers:a.teachers,
-        dcAvg:patchStats.dcAvg, lpTotal:patchStats.lpTotal, due:patchStats.due,
-        coveragePct:coveragePct, lastActivityDays:lastActivityDays, dcTrend:patchStats.dcTrend, connectivityIssueSchools:connectivityIssueSchools};
+      var row = a;
+      if(a.id==='aeo-adyala'){
+        // Visits/activity/trend derived for real from Sadia's actual HOTS
+        // submissions, rather than hardcoded like the stub AEOs — same
+        // fields, real source.
+        var visitsThisTerm = MY_FORMS.length;
+        var lastActivityDays = Math.min.apply(null, MY_FORMS.map(function(f){ return parseRelativeDays(f.date); }));
+        var connectivityIssueSchools = SCHOOLS.filter(function(s){ return s.connectivity!=='Good'; }).length;
+        row = {id:a.id, name:a.name, markaz:a.markaz, drillable:a.drillable, schools:a.schools, teachers:a.teachers,
+          dcAvg:patchStats.dcAvg, lpTotal:patchStats.lpTotal, due:patchStats.due,
+          visitsThisTerm:visitsThisTerm, lastActivityDays:lastActivityDays, dcTrend:patchStats.dcTrend, connectivityIssueSchools:connectivityIssueSchools};
+      }
+      row.coveragePct = Math.round(row.visitsThisTerm / (row.schools*2) * 100);
+      return row;
     }).sort(function(a,b){ return a.name.localeCompare(b.name); });
   }
 
@@ -1224,7 +1257,8 @@
     var dcAvgs = aeos.map(function(a){return a.dcAvg;});
     var range = { low: Math.min.apply(null, dcAvgs), high: Math.max.apply(null, dcAvgs) };
     var aeosNeedingSupport = aeos.filter(function(a){ return a.coveragePct < 60; }).length;
-    return { aeos:aeos, districtDcAvg:districtDcAvg, dcTrend:dcTrendAvg, coverageAvg:coverageAvg, range:range, aeosNeedingSupport:aeosNeedingSupport };
+    var visitsThisTerm = aeos.reduce(function(a,x){ return a+x.visitsThisTerm; }, 0);
+    return { aeos:aeos, districtDcAvg:districtDcAvg, dcTrend:dcTrendAvg, coverageAvg:coverageAvg, range:range, aeosNeedingSupport:aeosNeedingSupport, visitsThisTerm:visitsThisTerm };
   }
 
   function computeDeoAttention(){
@@ -1273,7 +1307,8 @@
 
     html += '<div class="stats k4">'
       + '<div class="stat-card accent-primary"><div class="label">District DC average</div><div class="value">'+stats.districtDcAvg+'% '+trendHtml(stats.dcTrend)+'</div><div class="sub">across all markaz</div></div>'
-      + '<div class="stat-card accent-primary"><div class="label">Coverage this term</div><div class="value">'+stats.coverageAvg+'%</div><div class="sub">schools actually observed</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Visits this term</div><div class="value">'+stats.visitsThisTerm+'</div><div class="sub">raw HOTS observation count, all markaz</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Coverage this term</div><div class="value">'+stats.coverageAvg+'%</div><div class="sub">of the 2-visits-per-school-per-month target</div></div>'
       + '<div class="stat-card accent-primary"><div class="label">Range across markaz</div><div class="value">'+stats.range.low+'%&ndash;'+stats.range.high+'%</div><div class="sub">lowest to highest AEO</div></div>'
       + '<div class="stat-card accent-warning"><div class="label">AEOs needing support</div><div class="value">'+stats.aeosNeedingSupport+'</div><div class="sub">below 60% coverage</div></div>'
       + '</div>';
@@ -1292,8 +1327,11 @@
       + '</tr></thead><tbody>';
     aeos.forEach(function(a){
       var clickAttr = a.drillable ? ' data-goto-aeo-drill="1"' : ' data-goto-stub="'+esc(a.name+' — '+a.markaz)+'"';
+      var nameCell = a.aeoAssignmentUnclear
+        ? '<div class="row-name">'+esc(a.name)+'</div><div class="hint" style="margin-top:2px;">No matching AEO-role record found</div>'
+        : '<div class="row-name">'+esc(a.name)+'</div>';
       html += '<tr'+clickAttr+'>'
-        + '<td><div class="row-name">'+esc(a.name)+'</div></td>'
+        + '<td>'+nameCell+'</td>'
         + '<td>'+esc(a.markaz)+'</td>'
         + '<td class="num">'+a.schools+'</td>'
         + '<td class="num">'+a.teachers+'</td>'
@@ -1304,7 +1342,7 @@
     });
     html += '</tbody></table></div></div></div>';
 
-    html += '<div class="proto-note"><b>Prototype note:</b> Sadia Iqbal’s markaz (Adyala) is grounded in real TaleemHub data — the 11 schools and 45 teachers are a real, live roster; coverage/trend/connectivity are derived from her actual HOTS submissions on top of that real shell. Performance numbers and individual teachers are still fictional (no real names sit next to invented scores). The other two AEOs remain fully illustrative stubs. Cross-markaz rubric-consistency (are AEOs scoring similarly on similar things) is a real DEO need but isn’t modeled here — there’s no real per-AEO score-distribution data to compute it from honestly, so it’s left out rather than fabricated. No individual teacher or single-school data appears on this screen by default — drilling into a markaz is the only way to reach that level.</div>';
+    html += '<div class="proto-note"><b>Prototype note:</b> 5 of Rawalpindi district’s 16 markaz are grounded in real TaleemHub data — school names, EMIS numbers and teacher headcounts for Adyala (drillable), Rawalpindi Cantt, Bassali, Chak Beli Khan and Shakrial are a real, live roster verified against TaleemHub_DB. Adyala’s coverage/trend/connectivity are additionally derived from Sadia Iqbal’s actual HOTS submissions. Performance numbers, AEO names on the other 4 markaz, and individual teachers remain fictional — no real names sit next to invented scores. Shakrial has real school data but no matching AEO-role record in TaleemHub, so it’s flagged "AEO unassigned" rather than inventing one. Coverage is calculated against the confirmed real cadence of 2 visits per school per month. The remaining 11 markaz aren’t modeled — this is a representative sample, not the full district. No individual teacher or single-school data appears on this screen by default — drilling into a markaz is the only way to reach that level.</div>';
     root.innerHTML = html;
   }
 
