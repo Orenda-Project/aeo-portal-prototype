@@ -564,6 +564,8 @@
       <button class="nav-btn" data-role="aeo" data-nav="teachers">Teachers</button>
       <button class="nav-btn" data-role="aeo" data-nav="my-forms">My HOTS forms</button>
       <button class="nav-btn" data-role="deo" data-nav="deo-district">My District</button>
+      <button class="nav-btn" data-role="deo" data-nav="schools">Schools</button>
+      <button class="nav-btn" data-role="deo" data-nav="teachers">Teachers</button>
       <button class="nav-btn" data-role="minister" data-nav="minister-overview">Punjab Overview</button>
     </div>
     <div class="spacer"></div>
@@ -600,6 +602,8 @@
       <button class="nav-btn" data-role="aeo" data-nav="teachers"><span class="bn-icon">&#128101;</span>Teachers</button>
       <button class="nav-btn" data-role="aeo" data-nav="my-forms"><span class="bn-icon">&#128221;</span>HOTS</button>
       <button class="nav-btn" data-role="deo" data-nav="deo-district"><span class="bn-icon">&#127979;</span>District</button>
+      <button class="nav-btn" data-role="deo" data-nav="schools"><span class="bn-icon">&#127979;</span>Schools</button>
+      <button class="nav-btn" data-role="deo" data-nav="teachers"><span class="bn-icon">&#128101;</span>Teachers</button>
       <button class="nav-btn" data-role="minister" data-nav="minister-overview"><span class="bn-icon">&#127757;</span>Punjab</button>
     </div>
   </nav>
@@ -899,7 +903,7 @@
       ]}
   ];
 
-  var state = { screen:'attention', role:'aeo', schoolId:null, teacherId:null, teacherFilter:'all', teacherSearch:'', visibility:'individual', formId:null, teacherHistoryOrigin:null, stubLabel:null };
+  var state = { screen:'attention', role:'aeo', schoolId:null, teacherId:null, teacherFilter:'all', teacherSearch:'', visibility:'individual', formId:null, teacherHistoryOrigin:null, stubLabel:null, deoMarkazFilter:null, markazFilter:'all' };
   var root = document.getElementById('container');
 
   var ROLE_IDENTITY = {
@@ -1121,6 +1125,10 @@
       parts = [{label:'My HOTS forms', screen:'my-forms'}, {label: f ? (f.teacher+' · '+f.date) : 'Form'}];
     }
     else if(state.screen==='deo-district'){ parts = [{label:'My District'}]; }
+    else if(state.screen==='deo-markaz-detail'){
+      var mdef = DEO_MARKAZ_FILTERS[state.deoMarkazFilter];
+      parts = [{label:'My District', screen:'deo-district'}, {label: mdef ? mdef.label : 'Markaz detail'}];
+    }
     else if(state.screen==='minister-overview'){ parts = [{label:'Punjab Overview'}]; }
     else if(state.screen==='stub-detail'){
       parts = [{label: state.role==='minister' ? 'Punjab Overview' : 'My District', screen: state.role==='minister' ? 'minister-overview' : 'deo-district'}, {label: state.stubLabel || 'Detail'}];
@@ -1166,7 +1174,9 @@
           + '<div class="title">'+f.title+'</div>'
           + '<div class="desc">'+f.desc+'</div>';
         if(f.action){
-          var attr = f.action.filterKey ? ' data-goto-filtered-teachers="'+f.action.filterKey+'"' : ' data-goto="'+f.action.screen+'"';
+          var attr = f.action.markazFilterKey ? ' data-goto-deo-markaz="'+f.action.markazFilterKey+'"'
+            : f.action.filterKey ? ' data-goto-filtered-teachers="'+f.action.filterKey+'"'
+            : ' data-goto="'+f.action.screen+'"';
           html += '<button class="btn btn-ghost btn-sm" style="margin-top:10px;"'+attr+'>View details</button>';
         }
         html += '</div></div>';
@@ -1269,7 +1279,8 @@
       flags.push({
         count: declining.length,
         icon:'&#128201;', title: declining.length+' markaz'+(declining.length===1?'':'s')+' show declining coaching trends this term',
-        desc:'Comparing each markaz’s DC trend against the start of the window — worth understanding whether it’s a staffing gap, a workload issue, or something else before it compounds.'
+        desc:'Comparing each markaz’s DC trend against the start of the window — worth understanding whether it’s a staffing gap, a workload issue, or something else before it compounds.',
+        action:{ markazFilterKey:'declining' }
       });
     }
     var lowCoverage = aeos.filter(function(a){ return a.coveragePct < 60; });
@@ -1277,7 +1288,8 @@
       flags.push({
         count: lowCoverage.length,
         icon:'&#128203;', title: lowCoverage.length+' AEO'+(lowCoverage.length===1?'':'s')+' below 60% school coverage this term',
-        desc:'Coverage is the most direct lever here — an AEO not visiting/observing regularly is a staffing or workload question before it’s a scores question.'
+        desc:'Coverage is the most direct lever here — an AEO not visiting/observing regularly is a staffing or workload question before it’s a scores question.',
+        action:{ markazFilterKey:'coverage' }
       });
     }
     var affectedAeos = aeos.filter(function(a){ return a.connectivityIssueSchools > 0; });
@@ -1286,7 +1298,8 @@
       flags.push({
         count: affectedAeos.length,
         icon:'&#128246;', title: 'Connectivity issues concentrated in '+affectedAeos.length+' of '+aeos.length+' markaz',
-        desc: affectedSchools+' school'+(affectedSchools===1?'':'s')+' affected across those markaz — a resourcing/infrastructure question, not something any one AEO can fix alone.'
+        desc: affectedSchools+' school'+(affectedSchools===1?'':'s')+' affected across those markaz — a resourcing/infrastructure question, not something any one AEO can fix alone.',
+        action:{ markazFilterKey:'connectivity' }
       });
     }
     flags.sort(function(a,b){ return b.count - a.count; });
@@ -1343,6 +1356,55 @@
     html += '</tbody></table></div></div></div>';
 
     html += '<div class="proto-note"><b>Prototype note:</b> 5 of Rawalpindi district’s 16 markaz are grounded in real TaleemHub data — school names, EMIS numbers and teacher headcounts for Adyala (drillable), Rawalpindi Cantt, Bassali, Chak Beli Khan and Shakrial are a real, live roster verified against TaleemHub_DB. Adyala’s coverage/trend/connectivity are additionally derived from Sadia Iqbal’s actual HOTS submissions. Performance numbers, AEO names on the other 4 markaz, and individual teachers remain fictional — no real names sit next to invented scores. Shakrial has real school data but no matching AEO-role record in TaleemHub, so it’s flagged "AEO unassigned" rather than inventing one. Coverage is calculated against the confirmed real cadence of 2 visits per school per month. The remaining 11 markaz aren’t modeled — this is a representative sample, not the full district. No individual teacher or single-school data appears on this screen by default — drilling into a markaz is the only way to reach that level.</div>';
+    root.innerHTML = html;
+  }
+
+  // Every flag on My District links here — the numbers behind the claim,
+  // one row per affected markaz, not just a repeated count. Same table shape
+  // for all three filters so the pattern stays predictable; only the reason
+  // line and which column is called out change.
+  var DEO_MARKAZ_FILTERS = {
+    declining:{ label:'Declining coaching trend', reason:'Markaz whose DC average has moved down from the start of this term’s window to now (first point vs. last point on the trend, not just the latest step).', test:function(a){ return netTrend(a.dcTrend).dir==='down'; } },
+    coverage:{ label:'Below 60% coverage', reason:'Markaz where visits this term fall short of 60% of the real target — 2 visits per school per month.', test:function(a){ return a.coveragePct < 60; } },
+    connectivity:{ label:'Connectivity issues', reason:'Markaz with at least one school reporting limited or no connectivity.', test:function(a){ return a.connectivityIssueSchools > 0; } }
+  };
+
+  function renderDeoMarkazDetail(){
+    var stats = computeDeoDistrictStats();
+    var filterKey = state.deoMarkazFilter;
+    var def = DEO_MARKAZ_FILTERS[filterKey];
+    var rows = def ? stats.aeos.filter(def.test) : stats.aeos;
+
+    var html = '';
+    html += crumbs();
+    html += '<div class="page-head"><div>'
+      +   '<h1>'+(def ? esc(def.label) : 'Markaz detail')+'</h1>'
+      +   '<p>'+(def ? esc(def.reason) : 'Detail behind a district-level flag.')+'</p>'
+      + '</div></div>';
+
+    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr>'
+      + '<th>AEO</th><th>Markaz</th><th>Visits this term</th><th>Target</th><th>Coverage</th><th>DC trend</th><th>Connectivity</th><th></th>'
+      + '</tr></thead><tbody>';
+    rows.forEach(function(a){
+      var clickAttr = a.drillable ? ' data-goto-aeo-drill="1"' : ' data-goto-stub="'+esc(a.name+' — '+a.markaz)+'"';
+      var connLabel = a.connectivityIssueSchools>0 ? a.connectivityIssueSchools+' school'+(a.connectivityIssueSchools===1?'':'s') : 'None';
+      html += '<tr'+clickAttr+'>'
+        + '<td><div class="row-name">'+esc(a.name)+'</div></td>'
+        + '<td>'+esc(a.markaz)+'</td>'
+        + '<td class="num">'+a.visitsThisTerm+'</td>'
+        + '<td class="num">'+(a.schools*2)+'</td>'
+        + '<td class="num">'+a.coveragePct+'%</td>'
+        + '<td>'+svgSpark(a.dcTrend, 64, 22)+'</td>'
+        + '<td>'+esc(connLabel)+'</td>'
+        + '<td><span class="chevron">&rsaquo;</span></td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div></div>';
+
+    if(rows.length===0){
+      html += '<div class="attn-empty"><div class="big">&#10003;</div>No markaz currently match this flag.</div>';
+    }
+
     root.innerHTML = html;
   }
 
@@ -1408,7 +1470,40 @@
     root.innerHTML = html;
   }
 
+  // DEO-only markaz scoping. SCHOOLS/TEACHERS hold Adyala's real per-school
+  // roster only — the other 6 markaz in DEO_DISTRICT are aggregate stubs with
+  // no per-school data to honestly list here. Picking one of those shows a
+  // stub card instead of fabricating a school grid for it.
+  function deoMarkazMismatch(){
+    if(state.role!=='deo') return null;
+    if(state.markazFilter==='all' || state.markazFilter==='Adyala') return null;
+    return DEO_DISTRICT.aeos.find(function(a){ return a.markaz===state.markazFilter; }) || null;
+  }
+  function renderDeoMarkazFilterRow(){
+    var markazList = DEO_DISTRICT.aeos.map(function(a){return a.markaz;});
+    var html = '<div class="filter-row">';
+    html += '<button class="chip'+(state.markazFilter==='all'?' active':'')+'" data-markaz-filter="all">All markaz</button>';
+    markazList.forEach(function(m){
+      html += '<button class="chip'+(state.markazFilter===m?' active':'')+'" data-markaz-filter="'+esc(m)+'">'+esc(m)+'</button>';
+    });
+    html += '</div>';
+    return html;
+  }
+  function renderMarkazStub(a, backNav){
+    var html = '';
+    html += '<div class="card" style="padding:22px;">'
+      + '<div class="sc-label" style="margin-bottom:8px;">'+esc(a.markaz)+' — aggregate only</div>'
+      + '<p style="color:var(--muted-fg); font-size:14px; line-height:1.6; margin-bottom:16px;">This markaz isn’t modeled at the individual school/teacher level in this prototype — only Adyala has a real per-school roster grounded in TaleemHub data. Here’s what’s known at the district-rollup level:</p>'
+      + '<div class="stats" style="margin-bottom:0;">'
+      + '<div class="stat-card accent-primary"><div class="label">Schools</div><div class="value">'+a.schools+'</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Teachers</div><div class="value">'+a.teachers+'</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">DC average</div><div class="value">'+a.dcAvg+'%</div></div>'
+      + '</div></div>';
+    return html;
+  }
+
   function renderSchools(){
+    var mismatch = deoMarkazMismatch();
     var totalTeachers = SCHOOLS.reduce(function(a,s){return a+s.teacherCount;},0);
     var totalLp = SCHOOLS.reduce(function(a,s){return a+s.lpCount;},0);
 
@@ -1416,8 +1511,16 @@
     html += crumbs();
     html += '<div class="page-head"><div>'
           +   '<h1>Schools</h1>'
-          +   '<p>Adyala markaz · Rawalpindi — how each school is doing. Not a ranking; ordered alphabetically.</p>'
+          +   '<p>'+(state.role==='deo' ? 'District-wide, filtered by markaz below. Not a ranking; ordered alphabetically.' : 'Adyala markaz · Rawalpindi — how each school is doing. Not a ranking; ordered alphabetically.')+'</p>'
           + '</div></div>';
+
+    if(state.role==='deo') html += renderDeoMarkazFilterRow();
+
+    if(mismatch){
+      html += renderMarkazStub(mismatch);
+      root.innerHTML = html;
+      return;
+    }
 
     html += '<div class="stats">'
       + '<div class="stat-card accent-primary"><div class="label">Schools</div><div class="value">'+SCHOOLS.length+'</div><div class="sub">in your roster</div></div>'
@@ -1518,6 +1621,7 @@
   }
 
   function renderTeachers(){
+    var mismatch = deoMarkazMismatch();
     var all = allTeachersFlat();
     var flaggedTotal = all.filter(function(t){return !isNotOnRumi(t) && needsSupport(t.dcScore);}).length;
     var staleTotal = all.filter(function(t){return !isNotOnRumi(t) && t.daysSince>=STALE_DAYS;}).length;
@@ -1538,7 +1642,15 @@
 
     var html = '';
     html += crumbs();
-    html += '<div class="page-head"><div><h1>Teachers</h1><p>All teachers across every school in your markaz.</p></div></div>';
+    html += '<div class="page-head"><div><h1>Teachers</h1><p>'+(state.role==='deo' ? 'District-wide, filtered by markaz below.' : 'All teachers across every school in your markaz.')+'</p></div></div>';
+
+    if(state.role==='deo') html += renderDeoMarkazFilterRow();
+
+    if(mismatch){
+      html += renderMarkazStub(mismatch);
+      root.innerHTML = html;
+      return;
+    }
 
     html += '<div class="filter-row">'
       + '<button class="chip'+(state.teacherFilter==='all'?' active':'')+'" data-filter="all">All <span class="n">'+all.length+'</span></button>'
@@ -1903,6 +2015,7 @@
     else if(state.screen==='my-forms') renderMyForms();
     else if(state.screen==='form-detail') renderFormDetail();
     else if(state.screen==='deo-district') renderDeoDistrict();
+    else if(state.screen==='deo-markaz-detail') renderDeoMarkazDetail();
     else if(state.screen==='minister-overview') renderMinisterOverview();
     else if(state.screen==='stub-detail') renderStubDetail();
     window.scrollTo(0,0);
@@ -1943,6 +2056,17 @@
     var deoDistrictBtn = e.target.closest('[data-goto-deo-district]');
     if(deoDistrictBtn){
       state.screen = 'deo-district';
+      render(); return;
+    }
+    var deoMarkazBtn = e.target.closest('[data-goto-deo-markaz]');
+    if(deoMarkazBtn){
+      state.deoMarkazFilter = deoMarkazBtn.dataset.gotoDeoMarkaz;
+      state.screen = 'deo-markaz-detail';
+      render(); return;
+    }
+    var markazFilterBtn = e.target.closest('[data-markaz-filter]');
+    if(markazFilterBtn){
+      state.markazFilter = markazFilterBtn.dataset.markazFilter;
       render(); return;
     }
     var stubBtn = e.target.closest('[data-goto-stub]');
