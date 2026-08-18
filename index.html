@@ -564,6 +564,7 @@
       <button class="nav-btn" data-role="aeo" data-nav="teachers">Teachers</button>
       <button class="nav-btn" data-role="aeo" data-nav="my-forms">My HOTS forms</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-region">My Region</button>
+      <button class="nav-btn" data-role="tm" data-nav="tm-aeos">AEOs</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-coobs">Co-Observations</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-feedback">Feedback Log</button>
       <button class="nav-btn" data-role="deo" data-nav="deo-district">My District</button>
@@ -606,6 +607,7 @@
       <button class="nav-btn" data-role="aeo" data-nav="teachers"><span class="bn-icon">&#128101;</span>Teachers</button>
       <button class="nav-btn" data-role="aeo" data-nav="my-forms"><span class="bn-icon">&#128221;</span>HOTS</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-region"><span class="bn-icon">&#127760;</span>Region</button>
+      <button class="nav-btn" data-role="tm" data-nav="tm-aeos"><span class="bn-icon">&#128100;</span>AEOs</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-coobs"><span class="bn-icon">&#129309;</span>Co-Obs</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-feedback"><span class="bn-icon">&#128172;</span>Feedback</button>
       <button class="nav-btn" data-role="deo" data-nav="deo-district"><span class="bn-icon">&#127979;</span>District</button>
@@ -920,11 +922,26 @@
   // 12-school/84-visit totals are all real) — only the TM's own name is
   // fictional, per the same real-structure/fictional-identity rule used
   // everywhere else in this prototype.
+  // Real assignment, resolved from users.assigned_aeos (5 real AEO user IDs)
+  // for this TM, then each AEO's own markaz_name looked up directly — this is
+  // the ASSIGNED roster, distinct from which markaz actually got a visit this
+  // term (TM_VISITS, below). One assigned AEO (Lodhran) is excluded entirely:
+  // zero matching schools anywhere in TaleemHub, and Lodhran is a real, distant
+  // district — almost certainly a data-entry error, not a real assignment.
   var TM_PROFILE = {
-    markazList: ['Adyala', 'Bassali Female', 'Bagga Sheikhan', 'Sihal Female'],
+    assignedAeos: [
+      { markaz:'Adyala', drillType:'real', schools:11, teachers:45, hotsForms:5 },
+      { markaz:'RWP Cantt', drillType:'stub', schools:11, teachers:53, hotsForms:11 },
+      { markaz:'Bassali Female', drillType:'stub', schools:13, teachers:52, hotsForms:10,
+        note:'This AEO’s own role record is spelled just "Bassali" — the teacher roster only has "Bassali Female". Most likely a male/female AEO track for the same physical markaz, not a data error; treated as the same markaz here.' },
+      { markaz:'Bagga Sheikhan', drillType:'visit-derived', schools:5, teachers:null, hotsForms:null,
+        note:'A strict roster join on this markaz name finds only 1 school — the field is barely populated for this AEO. Using the TM’s own real visit log instead (5 distinct schools this term), since it’s the more complete real signal available.' }
+    ],
+    skippedAeos: [
+      { markaz:'Lodhran', reason:'Assigned per users.assigned_aeos, but zero matching schools anywhere in TaleemHub. Lodhran is a real, distant district — this looks like a data-entry error, not a real markaz assignment. Excluded rather than fabricated.' }
+    ],
     schoolsReached: 12,
-    visitsThisTerm: 84,
-    aeosSupported: 4 // one per markaz — illustrative, no real TM-AEO link table exists
+    visitsThisTerm: 84
   };
 
   // Real visit rows (school name, date, class, subject, markaz, status, rubric)
@@ -972,7 +989,7 @@
       detail:'Teacher requested a nudge before a scheduled lesson, not just a post-lesson prompt — a small feature ask, not a bug.'},
   ];
 
-  var state = { screen:'attention', role:'aeo', schoolId:null, teacherId:null, teacherFilter:'all', teacherSearch:'', visibility:'individual', formId:null, teacherHistoryOrigin:null, stubLabel:null, deoMarkazFilter:null, markazFilter:'all' };
+  var state = { screen:'attention', role:'aeo', schoolId:null, teacherId:null, teacherFilter:'all', teacherSearch:'', visibility:'individual', formId:null, teacherHistoryOrigin:null, stubLabel:null, deoMarkazFilter:null, markazFilter:'all', tmAeoMarkaz:null };
   var root = document.getElementById('container');
 
   var ROLE_IDENTITY = {
@@ -1195,6 +1212,8 @@
       parts = [{label:'My HOTS forms', screen:'my-forms'}, {label: f ? (f.teacher+' · '+f.date) : 'Form'}];
     }
     else if(state.screen==='tm-region'){ parts = [{label:'My Region'}]; }
+    else if(state.screen==='tm-aeos'){ parts = [{label:'AEOs'}]; }
+    else if(state.screen==='tm-aeo-detail'){ parts = [{label:'AEOs', screen:'tm-aeos'}, {label: state.tmAeoMarkaz || 'AEO'}]; }
     else if(state.screen==='tm-coobs'){ parts = [{label:'Co-Observations'}]; }
     else if(state.screen==='tm-feedback'){ parts = [{label:'Feedback Log'}]; }
     else if(state.screen==='deo-district'){ parts = [{label:'My District'}]; }
@@ -1212,7 +1231,8 @@
     // dropping straight to the AEO's own top-level crumb.
     var aeoScreens = ['attention','schools','school-detail','teachers','teacher-history','markaz-history','my-forms','form-detail'];
     if(aeoScreens.indexOf(state.screen)!==-1){
-      if(state.role==='deo') parts.unshift({label:'My District', screen:'deo-district'});
+      if(state.role==='tm') parts.unshift({label:'AEOs', screen:'tm-aeos'});
+      else if(state.role==='deo') parts.unshift({label:'My District', screen:'deo-district'});
       else if(state.role==='minister') parts.unshift({label:'Punjab Overview', screen:'minister-overview'}, {label:'My District', screen:'deo-district'});
     }
     if(state.screen==='deo-district' && state.role==='minister'){
@@ -1549,6 +1569,15 @@
     return Math.round((refNow - d) / 86400000);
   }
 
+  // Assigned (from users.assigned_aeos) vs. visited-this-term (from
+  // mentoring_visits) are deliberately two different sets — that gap IS the
+  // signal. markaz can appear in one, the other, or both.
+  function tmVisitedMarkazSet(){
+    var set = {};
+    TM_VISITS.forEach(function(v){ set[v.markaz] = (set[v.markaz]||0) + 1; });
+    return set;
+  }
+
   function computeTmAttention(){
     var flags = [];
     var newFeedback = TM_FEEDBACK.filter(function(f){ return f.status==='new'; });
@@ -1560,31 +1589,32 @@
         action:{ screen:'tm-feedback' }
       });
     }
-    var byMarkaz = {};
-    TM_VISITS.forEach(function(v){ byMarkaz[v.markaz] = (byMarkaz[v.markaz]||0) + 1; });
-    var thin = TM_PROFILE.markazList.filter(function(m){ return (byMarkaz[m]||0) <= 2; });
-    if(thin.length){
+    var visited = tmVisitedMarkazSet();
+    var untouched = TM_PROFILE.assignedAeos.filter(function(a){ return !visited[a.markaz]; });
+    if(untouched.length){
       flags.push({
-        count: thin.length,
-        icon:'&#128205;', title: thin.length+' markaz'+(thin.length===1?'':'s')+' with only light coverage this term',
-        desc: thin.join(', ')+' — fewer visits logged than the rest of your patch this term.',
-        action:{ screen:'tm-coobs' }
+        count: untouched.length,
+        icon:'&#128205;', title: untouched.length+' assigned markaz'+(untouched.length===1?'':'s')+' with no visit logged this term',
+        desc: untouched.map(function(a){return a.markaz;}).join(', ')+' — assigned per your AEO roster, but no mentoring visit recorded yet this term.',
+        action:{ screen:'tm-aeos' }
       });
     }
     return flags;
   }
 
   function renderTmRegion(){
+    var visited = tmVisitedMarkazSet();
+    var assignedCount = TM_PROFILE.assignedAeos.length;
     var html = '';
     html += crumbs();
     html += '<div class="page-head"><div>'
       +   '<h1>My Region</h1>'
-      +   '<p>'+TM_PROFILE.markazList.length+' markaz across Rawalpindi — coverage, co-observations, and what teachers are telling you that AEOs alone might not surface.</p>'
+      +   '<p>'+assignedCount+' AEOs assigned to you across Rawalpindi — coverage, co-observations, and what teachers are telling you that AEOs alone might not surface.</p>'
       + '</div></div>';
 
     html += '<div class="stats k4">'
-      + '<div class="stat-card accent-primary"><div class="label">Markaz assigned</div><div class="value">'+TM_PROFILE.markazList.length+'</div><div class="sub">'+esc(TM_PROFILE.markazList.join(', '))+'</div></div>'
-      + '<div class="stat-card accent-primary"><div class="label">Schools reached</div><div class="value">'+TM_PROFILE.schoolsReached+'</div><div class="sub">this term, across all markaz</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">AEOs assigned</div><div class="value">'+assignedCount+'</div><div class="sub">'+esc(TM_PROFILE.assignedAeos.map(function(a){return a.markaz;}).join(', '))+'</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Schools reached</div><div class="value">'+TM_PROFILE.schoolsReached+'</div><div class="sub">this term, across all markaz visited</div></div>'
       + '<div class="stat-card accent-primary"><div class="label">Visits logged</div><div class="value">'+TM_PROFILE.visitsThisTerm+'</div><div class="sub">co-observations + solo mentoring visits</div></div>'
       + '<div class="stat-card accent-warning"><div class="label">Feedback themes open</div><div class="value">'+TM_FEEDBACK.filter(function(f){return f.status!=='building';}).length+'</div><div class="sub">not yet in product build</div></div>'
       + '</div>';
@@ -1592,17 +1622,70 @@
     var flags = computeTmAttention();
     html += flags.length ? renderFlagCards(flags) : '';
 
-    html += '<div class="section" style="margin-top:32px;"><div class="section-head"><h2>Markaz coverage</h2><span class="hint">Visits logged this term, by markaz</span></div>';
-    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr><th>Markaz</th><th>Visits</th><th>Schools touched</th></tr></thead><tbody>';
-    TM_PROFILE.markazList.forEach(function(m){
-      var rows = TM_VISITS.filter(function(v){ return v.markaz===m; });
-      var schoolCount = {};
-      rows.forEach(function(v){ schoolCount[v.school]=true; });
-      html += '<tr><td><div class="row-name">'+esc(m)+'</div></td><td class="num">'+rows.length+'</td><td class="num">'+Object.keys(schoolCount).length+'</td></tr>';
+    html += '<div class="section" style="margin-top:32px;"><div class="section-head"><h2>Assigned AEOs</h2><span class="hint">Assigned vs. visited this term — not a ranking</span></div>';
+    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr><th>Markaz (AEO)</th><th>Visits this term</th><th>Status</th><th></th></tr></thead><tbody>';
+    TM_PROFILE.assignedAeos.forEach(function(a){
+      var count = visited[a.markaz] || 0;
+      var statusCell = count>0 ? '<span class="no-flag">Visited</span>' : '<span class="needs-support">No visit yet</span>';
+      html += '<tr data-goto-tm-aeo="'+esc(a.markaz)+'">'
+        + '<td><div class="row-name">'+esc(a.markaz)+'</div></td>'
+        + '<td class="num">'+count+'</td>'
+        + '<td>'+statusCell+'</td>'
+        + '<td><span class="chevron">&rsaquo;</span></td>'
+        + '</tr>';
     });
     html += '</tbody></table></div></div></div>';
 
-    html += '<div class="proto-note"><b>Prototype note:</b> markaz span, schools reached and visit counts here are real — reconstructed from TaleemHub_DB.mentoring_visits for one active Training Manager, since no assignment table links TMs to markaz directly (9 of 10 TM rows have no markaz_name set). The TM’s own name is fictional, per the same rule used for Sadia Iqbal’s identity. Visit notes and feedback themes are illustrative.</div>';
+    html += '<div class="proto-note"><b>Prototype note:</b> the 4 assigned AEOs above come from users.assigned_aeos, resolved to each AEO’s real markaz — this is the actual assignment, not a reconstruction from visit activity. A 5th assigned AEO (Lodhran) is excluded: zero matching schools anywhere in TaleemHub, almost certainly a data-entry error (Lodhran is a real, distant district). Visit counts are real, from TaleemHub_DB.mentoring_visits. The TM’s own name is fictional, per the same rule used for Sadia Iqbal’s identity. Note this TM also visited Sihal Female this term — a real markaz outside their assigned roster — visible on the Co-Observations tab.</div>';
+    root.innerHTML = html;
+  }
+
+  function renderTmAeoDetail(){
+    var a = TM_PROFILE.assignedAeos.find(function(x){ return x.markaz===state.tmAeoMarkaz; });
+    var html = '';
+    html += crumbs();
+    if(!a){ root.innerHTML = html + '<div class="debrief-empty">AEO not found.</div>'; return; }
+
+    if(a.drillType==='real'){
+      // Adyala is the one assigned AEO with a full real roster already
+      // modeled — send the TM straight to the same screens Sadia Iqbal sees,
+      // rather than duplicating them.
+      state.screen = 'attention';
+      render();
+      return;
+    }
+
+    html += '<div class="page-head"><div><h1>'+esc(a.markaz)+'</h1><p>'+(a.drillType==='visit-derived' ? 'Built from this TM’s own visit log — the roster join for this markaz is too sparse to trust on its own.' : 'Aggregate only — no per-school roster modeled for this markaz in this prototype.')+'</p></div></div>';
+    html += '<div class="stats">'
+      + '<div class="stat-card accent-primary"><div class="label">Schools</div><div class="value">'+a.schools+'</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Teachers</div><div class="value">'+(a.teachers==null?'—':a.teachers)+'</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">HOTS forms submitted</div><div class="value">'+(a.hotsForms==null?'—':a.hotsForms)+'</div></div>'
+      + '</div>';
+    if(a.note){
+      html += '<div class="insight-card"><div class="ic">&#8505;</div><div class="body"><div class="eyebrow">Data note</div><p>'+esc(a.note)+'</p></div></div>';
+    }
+    root.innerHTML = html;
+  }
+
+  function renderTmAeos(){
+    var visited = tmVisitedMarkazSet();
+    var html = '';
+    html += crumbs();
+    html += '<div class="page-head"><div><h1>AEOs</h1><p>Every AEO assigned to you, per your real roster — visit status alongside each one, not just your own patch.</p></div></div>';
+    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr><th>Markaz (AEO)</th><th>Schools</th><th>Teachers</th><th>HOTS forms</th><th>Visits this term</th><th></th></tr></thead><tbody>';
+    TM_PROFILE.assignedAeos.forEach(function(a){
+      var count = visited[a.markaz] || 0;
+      html += '<tr data-goto-tm-aeo="'+esc(a.markaz)+'">'
+        + '<td><div class="row-name">'+esc(a.markaz)+'</div></td>'
+        + '<td class="num">'+a.schools+'</td>'
+        + '<td class="num">'+(a.teachers==null?'—':a.teachers)+'</td>'
+        + '<td class="num">'+(a.hotsForms==null?'—':a.hotsForms)+'</td>'
+        + '<td class="num">'+count+'</td>'
+        + '<td><span class="chevron">&rsaquo;</span></td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div></div>';
+    html += '<div class="proto-note"><b>Prototype note:</b> excludes one assigned AEO (Lodhran) — no matching school data anywhere in TaleemHub, almost certainly a data-entry error rather than a real assignment.</div>';
     root.innerHTML = html;
   }
 
@@ -2155,7 +2238,8 @@
       var isFormsGroup = b.dataset.nav==='my-forms' && (state.screen==='my-forms' || state.screen==='form-detail');
       var isDeoGroup = b.dataset.nav==='deo-district' && state.screen==='deo-district';
       var isMinisterGroup = b.dataset.nav==='minister-overview' && state.screen==='minister-overview';
-      var isTmActive = b.dataset.nav===state.screen && (state.screen==='tm-region' || state.screen==='tm-coobs' || state.screen==='tm-feedback');
+      var isTmAeosGroup = b.dataset.nav==='tm-aeos' && (state.screen==='tm-aeos' || state.screen==='tm-aeo-detail');
+      var isTmActive = isTmAeosGroup || (b.dataset.nav===state.screen && (state.screen==='tm-region' || state.screen==='tm-coobs' || state.screen==='tm-feedback'));
       b.classList.toggle('active', isAttn || isSchoolsGroup || isTeachersGroup || isFormsGroup || isDeoGroup || isMinisterGroup || isTmActive);
     });
     var attnCount = computeAttention().length;
@@ -2192,6 +2276,8 @@
     else if(state.screen==='my-forms') renderMyForms();
     else if(state.screen==='form-detail') renderFormDetail();
     else if(state.screen==='tm-region') renderTmRegion();
+    else if(state.screen==='tm-aeos') renderTmAeos();
+    else if(state.screen==='tm-aeo-detail') renderTmAeoDetail();
     else if(state.screen==='tm-coobs') renderTmCoObs();
     else if(state.screen==='tm-feedback') renderTmFeedback();
     else if(state.screen==='deo-district') renderDeoDistrict();
@@ -2242,6 +2328,12 @@
     if(deoMarkazBtn){
       state.deoMarkazFilter = deoMarkazBtn.dataset.gotoDeoMarkaz;
       state.screen = 'deo-markaz-detail';
+      render(); return;
+    }
+    var tmAeoBtn = e.target.closest('[data-goto-tm-aeo]');
+    if(tmAeoBtn){
+      state.tmAeoMarkaz = tmAeoBtn.dataset.gotoTmAeo;
+      state.screen = 'tm-aeo-detail';
       render(); return;
     }
     var markazFilterBtn = e.target.closest('[data-markaz-filter]');
