@@ -566,7 +566,6 @@
       <button class="nav-btn" data-role="tm" data-nav="tm-region">My Region</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-aeos">AEOs</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-coobs">Co-Observations</button>
-      <button class="nav-btn" data-role="tm" data-nav="tm-feedback">Feedback Log</button>
       <button class="nav-btn" data-role="deo" data-nav="deo-district">My District</button>
       <button class="nav-btn" data-role="deo" data-nav="schools">Schools</button>
       <button class="nav-btn" data-role="deo" data-nav="teachers">Teachers</button>
@@ -609,7 +608,6 @@
       <button class="nav-btn" data-role="tm" data-nav="tm-region"><span class="bn-icon">&#127760;</span>Region</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-aeos"><span class="bn-icon">&#128100;</span>AEOs</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-coobs"><span class="bn-icon">&#129309;</span>Co-Obs</button>
-      <button class="nav-btn" data-role="tm" data-nav="tm-feedback"><span class="bn-icon">&#128172;</span>Feedback</button>
       <button class="nav-btn" data-role="deo" data-nav="deo-district"><span class="bn-icon">&#127979;</span>District</button>
       <button class="nav-btn" data-role="deo" data-nav="schools"><span class="bn-icon">&#127979;</span>Schools</button>
       <button class="nav-btn" data-role="deo" data-nav="teachers"><span class="bn-icon">&#128101;</span>Teachers</button>
@@ -976,18 +974,11 @@
       note:'First visit to this school this term — teacher had not received any Digital Coach training yet.'},
   ];
 
-  // Fictional — no product-feedback-log table exists in TaleemHub to ground
-  // this in; it's the one screen with no AEO/DEO precedent to reuse.
-  var TM_FEEDBACK = [
-    {theme:'Digital Coach clip length', reportCount:4, schools:['GGES Jharaki','GGPS No. 2 Bagga Sheikhan'], status:'reviewed',
-      detail:'Multiple teachers say current clips run long enough that they can’t finish a full Digital Coach session before recess or the next period.'},
-    {theme:'Connectivity drops mid-session', reportCount:3, schools:['GGPS Banda Nagial','GGPS No. 2 Bagga Sheikhan'], status:'new',
-      detail:'Recurring in the Bagga Sheikhan cluster specifically — worth checking whether this is a network/infra pattern rather than isolated devices.'},
-    {theme:'Multi-grade lesson-plan PDF export cuts off', reportCount:2, schools:['GGPS No. 2 Bagga Sheikhan'], status:'building',
-      detail:'Mono-grade plans export fine; multi-grade combined plans get truncated in the PDF.'},
-    {theme:'Pre-lesson reminder notification', reportCount:1, schools:['GGES Arazi Sohal'], status:'new',
-      detail:'Teacher requested a nudge before a scheduled lesson, not just a post-lesson prompt — a small feature ask, not a bug.'},
-  ];
+  // TM_FEEDBACK / the Feedback Log screen is intentionally removed for now —
+  // there's no real product-feedback-log table in TaleemHub to ground it in,
+  // and it needs a real shippable capture mechanism (e.g. off the WhatsApp
+  // voice-note flow already used for mentoring_visits) before it belongs in
+  // this prototype rather than as a fully fictional screen.
 
   var state = { screen:'attention', role:'aeo', schoolId:null, teacherId:null, teacherFilter:'all', teacherSearch:'', visibility:'individual', formId:null, teacherHistoryOrigin:null, stubLabel:null, deoMarkazFilter:null, markazFilter:'all', tmAeoMarkaz:null };
   var root = document.getElementById('container');
@@ -1215,7 +1206,6 @@
     else if(state.screen==='tm-aeos'){ parts = [{label:'AEOs'}]; }
     else if(state.screen==='tm-aeo-detail'){ parts = [{label:'AEOs', screen:'tm-aeos'}, {label: state.tmAeoMarkaz || 'AEO'}]; }
     else if(state.screen==='tm-coobs'){ parts = [{label:'Co-Observations'}]; }
-    else if(state.screen==='tm-feedback'){ parts = [{label:'Feedback Log'}]; }
     else if(state.screen==='deo-district'){ parts = [{label:'My District'}]; }
     else if(state.screen==='deo-markaz-detail'){
       var mdef = DEO_MARKAZ_FILTERS[state.deoMarkazFilter];
@@ -1580,15 +1570,6 @@
 
   function computeTmAttention(){
     var flags = [];
-    var newFeedback = TM_FEEDBACK.filter(function(f){ return f.status==='new'; });
-    if(newFeedback.length){
-      flags.push({
-        count: newFeedback.length,
-        icon:'&#128172;', title: newFeedback.length+' new product feedback theme'+(newFeedback.length===1?'':'s')+' logged, not yet reviewed',
-        desc:'Straight from teacher conversations on recent visits — worth a look before they pile up.',
-        action:{ screen:'tm-feedback' }
-      });
-    }
     var visited = tmVisitedMarkazSet();
     var untouched = TM_PROFILE.assignedAeos.filter(function(a){ return !visited[a.markaz]; });
     if(untouched.length){
@@ -1616,7 +1597,7 @@
       + '<div class="stat-card accent-primary"><div class="label">AEOs assigned</div><div class="value">'+assignedCount+'</div><div class="sub">'+esc(TM_PROFILE.assignedAeos.map(function(a){return a.markaz;}).join(', '))+'</div></div>'
       + '<div class="stat-card accent-primary"><div class="label">Schools reached</div><div class="value">'+TM_PROFILE.schoolsReached+'</div><div class="sub">this term, across all markaz visited</div></div>'
       + '<div class="stat-card accent-primary"><div class="label">Visits logged</div><div class="value">'+TM_PROFILE.visitsThisTerm+'</div><div class="sub">co-observations + solo mentoring visits</div></div>'
-      + '<div class="stat-card accent-warning"><div class="label">Feedback themes open</div><div class="value">'+TM_FEEDBACK.filter(function(f){return f.status!=='building';}).length+'</div><div class="sub">not yet in product build</div></div>'
+      + '<div class="stat-card accent-warning"><div class="label">Assigned AEOs visited</div><div class="value">'+TM_PROFILE.assignedAeos.filter(function(a){return visited[a.markaz];}).length+'/'+assignedCount+'</div><div class="sub">this term</div></div>'
       + '</div>';
 
     var flags = computeTmAttention();
@@ -1707,25 +1688,6 @@
     });
     html += '</tbody></table></div></div>';
     html += '<div class="proto-note"><b>Prototype note:</b> school names, EMIS numbers, dates, and class/subject are real (from TaleemHub_DB.mentoring_visits). The note in each row is authored for this prototype, not copied from the real general_feedback/tm_notes columns — those hold real judgment-bearing content about real teachers, which stays out of this prototype the same way HOTS debrief content does elsewhere.</div>';
-    root.innerHTML = html;
-  }
-
-  function renderTmFeedback(){
-    var statusLabel = {new:'New', reviewed:'Reviewed', building:'Building'};
-    var html = '';
-    html += crumbs();
-    html += '<div class="page-head"><div><h1>Feedback Log</h1><p>Problems and requests surfaced directly from teachers on your visits — grouped by theme, not by school, so patterns are visible across your whole region.</p></div></div>';
-    html += '<div class="card">';
-    TM_FEEDBACK.forEach(function(f, i){
-      if(i>0) html += '<div style="border-top:1px solid var(--border);"></div>';
-      html += '<div class="attn-card"><div class="icon sev-'+(f.status==='new'?'high':f.status==='reviewed'?'medium':'low')+'">&#128172;</div><div class="body">'
-        + '<div class="title">'+esc(f.theme)+' <span class="chip" style="margin-left:8px; pointer-events:none;">'+statusLabel[f.status]+'</span></div>'
-        + '<div class="desc">'+esc(f.detail)+'</div>'
-        + '<div class="hint" style="margin-top:6px;">Reported '+f.reportCount+'x · '+esc(f.schools.join(', '))+'</div>'
-        + '</div></div>';
-    });
-    html += '</div>';
-    html += '<div class="proto-note"><b>Prototype note:</b> fully illustrative — there’s no product-feedback-log table in TaleemHub to ground this in, unlike Co-Observations. This is the one TM screen with no real data or existing-screen precedent behind it.</div>';
     root.innerHTML = html;
   }
 
@@ -2239,7 +2201,7 @@
       var isDeoGroup = b.dataset.nav==='deo-district' && state.screen==='deo-district';
       var isMinisterGroup = b.dataset.nav==='minister-overview' && state.screen==='minister-overview';
       var isTmAeosGroup = b.dataset.nav==='tm-aeos' && (state.screen==='tm-aeos' || state.screen==='tm-aeo-detail');
-      var isTmActive = isTmAeosGroup || (b.dataset.nav===state.screen && (state.screen==='tm-region' || state.screen==='tm-coobs' || state.screen==='tm-feedback'));
+      var isTmActive = isTmAeosGroup || (b.dataset.nav===state.screen && (state.screen==='tm-region' || state.screen==='tm-coobs'));
       b.classList.toggle('active', isAttn || isSchoolsGroup || isTeachersGroup || isFormsGroup || isDeoGroup || isMinisterGroup || isTmActive);
     });
     var attnCount = computeAttention().length;
@@ -2279,7 +2241,6 @@
     else if(state.screen==='tm-aeos') renderTmAeos();
     else if(state.screen==='tm-aeo-detail') renderTmAeoDetail();
     else if(state.screen==='tm-coobs') renderTmCoObs();
-    else if(state.screen==='tm-feedback') renderTmFeedback();
     else if(state.screen==='deo-district') renderDeoDistrict();
     else if(state.screen==='deo-markaz-detail') renderDeoMarkazDetail();
     else if(state.screen==='minister-overview') renderMinisterOverview();
