@@ -563,6 +563,9 @@
       <button class="nav-btn" data-role="aeo" data-nav="schools">Schools</button>
       <button class="nav-btn" data-role="aeo" data-nav="teachers">Teachers</button>
       <button class="nav-btn" data-role="aeo" data-nav="my-forms">My HOTS forms</button>
+      <button class="nav-btn" data-role="tm" data-nav="tm-region">My Region</button>
+      <button class="nav-btn" data-role="tm" data-nav="tm-coobs">Co-Observations</button>
+      <button class="nav-btn" data-role="tm" data-nav="tm-feedback">Feedback Log</button>
       <button class="nav-btn" data-role="deo" data-nav="deo-district">My District</button>
       <button class="nav-btn" data-role="deo" data-nav="schools">Schools</button>
       <button class="nav-btn" data-role="deo" data-nav="teachers">Teachers</button>
@@ -571,6 +574,7 @@
     <div class="spacer"></div>
     <div class="role-toggle" role="group" aria-label="Viewing as">
       <button data-role-switch="aeo" class="role-switch-btn">AEO</button>
+      <button data-role-switch="tm" class="role-switch-btn">TM</button>
       <button data-role-switch="deo" class="role-switch-btn">DEO</button>
       <button data-role-switch="minister" class="role-switch-btn">Minister</button>
     </div>
@@ -601,6 +605,9 @@
       <button class="nav-btn" data-role="aeo" data-nav="schools"><span class="bn-icon">&#127979;</span>Schools</button>
       <button class="nav-btn" data-role="aeo" data-nav="teachers"><span class="bn-icon">&#128101;</span>Teachers</button>
       <button class="nav-btn" data-role="aeo" data-nav="my-forms"><span class="bn-icon">&#128221;</span>HOTS</button>
+      <button class="nav-btn" data-role="tm" data-nav="tm-region"><span class="bn-icon">&#127760;</span>Region</button>
+      <button class="nav-btn" data-role="tm" data-nav="tm-coobs"><span class="bn-icon">&#129309;</span>Co-Obs</button>
+      <button class="nav-btn" data-role="tm" data-nav="tm-feedback"><span class="bn-icon">&#128172;</span>Feedback</button>
       <button class="nav-btn" data-role="deo" data-nav="deo-district"><span class="bn-icon">&#127979;</span>District</button>
       <button class="nav-btn" data-role="deo" data-nav="schools"><span class="bn-icon">&#127979;</span>Schools</button>
       <button class="nav-btn" data-role="deo" data-nav="teachers"><span class="bn-icon">&#128101;</span>Teachers</button>
@@ -903,11 +910,74 @@
       ]}
   ];
 
+  // ---- Training Manager (TM) data. TMs are Rumi/Taleemabad staff, not
+  // government — they sit BESIDE the AEO→DEO chain, each covering several
+  // markaz worth of AEOs. There's no assignment table for this in TaleemHub
+  // (users.markaz_name is unset for 9 of 10 TRAINING_MANAGER rows), so the
+  // markaz span below is reconstructed from real activity instead: every
+  // number here is derived from TaleemHub_DB.mentoring_visits for one real,
+  // active TM (school names, dates, class/subject, markaz, and the 4-markaz/
+  // 12-school/84-visit totals are all real) — only the TM's own name is
+  // fictional, per the same real-structure/fictional-identity rule used
+  // everywhere else in this prototype.
+  var TM_PROFILE = {
+    markazList: ['Adyala', 'Bassali Female', 'Bagga Sheikhan', 'Sihal Female'],
+    schoolsReached: 12,
+    visitsThisTerm: 84,
+    aeosSupported: 4 // one per markaz — illustrative, no real TM-AEO link table exists
+  };
+
+  // Real visit rows (school name, date, class, subject, markaz, status, rubric)
+  // pulled directly from mentoring_visits for this TM. general_feedback /
+  // strengths_observed / action_items / tm_notes exist as real columns on this
+  // table but their CONTENT is not pulled here — same judgment-bearing-content
+  // rule as HOTS forms elsewhere, so `note` below is authored, not copied.
+  var TM_VISITS = [
+    {school:'GGES Mera Mohra', emis:'37330524', date:'2026-05-19', grade:'Class 4', subject:'English', markaz:'Bassali Female', status:'submitted',
+      note:'Co-observed with the markaz AEO — strong pair-work routine, but English vocabulary drilled with translation only, no visual scaffolds.'},
+    {school:'GGES Banda', emis:'37330551', date:'2026-05-19', grade:'Class 5', subject:'Urdu', markaz:'Bassali Female', status:'submitted',
+      note:'Reading fluency practice was well-paced; asked the teacher whether audio playback on Rumi ever glitches — she said yes, twice this month.'},
+    {school:'GGES Jharaki', emis:'37330555', date:'2026-05-19', grade:'Class 5', subject:'Maths', markaz:'Bassali Female', status:'submitted',
+      note:'Fractions lesson, mostly procedural. Teacher asked for shorter Digital Coach clips — says the current length is hard to fit before recess.'},
+    {school:'GGPS Jorian', emis:'37330565', date:'2026-05-13', grade:'Class 4', subject:'English', markaz:'Bagga Sheikhan', status:'submitted',
+      note:'Joint visit with the AEO — school the AEO can reach only every 6 weeks due to distance, so this was mainly a coverage-gap visit.'},
+    {school:'GGPS Banda Nagial', emis:'37330709', date:'2026-05-13', grade:'Class 2', subject:'English', markaz:'Bagga Sheikhan', status:'submitted',
+      note:'Alphabet recognition activity, high engagement. Connectivity dropped mid-session — third report of this from this cluster this term.'},
+    {school:'GGPS No. 2 Bagga Sheikhan', emis:'37330704', date:'2026-05-11', grade:'Class 2', subject:'English', markaz:'Bagga Sheikhan', status:'submitted',
+      note:'Two classes observed back-to-back. Teacher mentioned the lesson-plan PDF export cuts off multi-grade plans — logged for product.'},
+    {school:'GGPS No. 2 Bagga Sheikhan', emis:'37330704', date:'2026-05-11', grade:'Class 3', subject:'Maths', markaz:'Bagga Sheikhan', status:'submitted',
+      note:'Word problems, good use of real-world examples. Same connectivity complaint as the earlier class today.'},
+    {school:'GES Khasalaa Kallan', emis:'37330350', date:'2026-05-07', grade:'Class 2', subject:'English', markaz:'Adyala', status:'submitted',
+      note:'Co-observed alongside Sadia (the Adyala AEO) — calibration visit to compare HOTS scoring between an AEO and a TM on the same lesson.'},
+    {school:'GPS Bodial', emis:'37330309', date:'2026-05-07', grade:'Class 4', subject:'English', markaz:'Adyala', status:'submitted',
+      note:'Strong open-ended questioning throughout. No product issues raised this visit.'},
+    {school:'GGES Arazi Sohal', emis:'37330172', date:'2026-04-30', grade:'Class 4', subject:'Maths', markaz:'Sihal Female', status:'submitted',
+      note:'Teacher asked whether Rumi can send a reminder notification before a lesson, not just after — logged as a feature request.'},
+    {school:'GGPS Dhadar Najjar', emis:'37330532', date:'2026-04-30', grade:'Class 5', subject:'', markaz:'Sihal Female', status:'submitted',
+      note:'Subject not logged for this session — a data-entry gap on the visit form worth flagging to product, not a teaching issue.'},
+    {school:'GMPS Mohra Bhatan', emis:'37330281', date:'2026-04-30', grade:'Class 2', subject:'English', markaz:'Sihal Female', status:'submitted',
+      note:'First visit to this school this term — teacher had not received any Digital Coach training yet.'},
+  ];
+
+  // Fictional — no product-feedback-log table exists in TaleemHub to ground
+  // this in; it's the one screen with no AEO/DEO precedent to reuse.
+  var TM_FEEDBACK = [
+    {theme:'Digital Coach clip length', reportCount:4, schools:['GGES Jharaki','GGPS No. 2 Bagga Sheikhan'], status:'reviewed',
+      detail:'Multiple teachers say current clips run long enough that they can’t finish a full Digital Coach session before recess or the next period.'},
+    {theme:'Connectivity drops mid-session', reportCount:3, schools:['GGPS Banda Nagial','GGPS No. 2 Bagga Sheikhan'], status:'new',
+      detail:'Recurring in the Bagga Sheikhan cluster specifically — worth checking whether this is a network/infra pattern rather than isolated devices.'},
+    {theme:'Multi-grade lesson-plan PDF export cuts off', reportCount:2, schools:['GGPS No. 2 Bagga Sheikhan'], status:'building',
+      detail:'Mono-grade plans export fine; multi-grade combined plans get truncated in the PDF.'},
+    {theme:'Pre-lesson reminder notification', reportCount:1, schools:['GGES Arazi Sohal'], status:'new',
+      detail:'Teacher requested a nudge before a scheduled lesson, not just a post-lesson prompt — a small feature ask, not a bug.'},
+  ];
+
   var state = { screen:'attention', role:'aeo', schoolId:null, teacherId:null, teacherFilter:'all', teacherSearch:'', visibility:'individual', formId:null, teacherHistoryOrigin:null, stubLabel:null, deoMarkazFilter:null, markazFilter:'all' };
   var root = document.getElementById('container');
 
   var ROLE_IDENTITY = {
     aeo:{ rolePill:'AEO — Rawalpindi', name:'Sadia Iqbal', roleLine:'Markaz: Adyala', initials:'SI' },
+    tm:{ rolePill:'Training Manager — Rawalpindi', name:'Bilal Rasheed', roleLine:'4 markaz assigned', initials:'BR' },
     deo:{ rolePill:'DEO — Rawalpindi', name:'Aamir Latif', roleLine:'District: Rawalpindi', initials:'AL' },
     minister:{ rolePill:'Minister — Punjab', name:'Punjab School Education Dept.', roleLine:'Province: Punjab', initials:'PB' }
   };
@@ -1124,6 +1194,9 @@
       var f = MY_FORMS.find(function(x){return x.id===state.formId;});
       parts = [{label:'My HOTS forms', screen:'my-forms'}, {label: f ? (f.teacher+' · '+f.date) : 'Form'}];
     }
+    else if(state.screen==='tm-region'){ parts = [{label:'My Region'}]; }
+    else if(state.screen==='tm-coobs'){ parts = [{label:'Co-Observations'}]; }
+    else if(state.screen==='tm-feedback'){ parts = [{label:'Feedback Log'}]; }
     else if(state.screen==='deo-district'){ parts = [{label:'My District'}]; }
     else if(state.screen==='deo-markaz-detail'){
       var mdef = DEO_MARKAZ_FILTERS[state.deoMarkazFilter];
@@ -1467,6 +1540,109 @@
     html += '<div class="page-head"><div><h1>'+esc(state.stubLabel || 'Detail')+'</h1><p>Illustrative aggregate only.</p></div>'
       + '<div class="actions"><button class="btn btn-ghost" data-goto="'+(state.role==='minister'?'minister-overview':'deo-district')+'">&larr; Back</button></div></div>';
     html += '<div class="debrief-empty">Detailed drill-down data isn’t modeled for '+esc(state.stubLabel || 'this')+' in this prototype — only Sadia Iqbal’s markaz (Adyala) has real schools/teachers/HOTS data behind it. This card exists so the gap is honest rather than filled with fabricated numbers.</div>';
+    root.innerHTML = html;
+  }
+
+  function parseIsoDaysAgo(dateStr){
+    var d = new Date(dateStr+'T00:00:00Z');
+    var refNow = new Date('2026-05-25T00:00:00Z'); // fixed "today" so this stays stable without Date.now()
+    return Math.round((refNow - d) / 86400000);
+  }
+
+  function computeTmAttention(){
+    var flags = [];
+    var newFeedback = TM_FEEDBACK.filter(function(f){ return f.status==='new'; });
+    if(newFeedback.length){
+      flags.push({
+        count: newFeedback.length,
+        icon:'&#128172;', title: newFeedback.length+' new product feedback theme'+(newFeedback.length===1?'':'s')+' logged, not yet reviewed',
+        desc:'Straight from teacher conversations on recent visits — worth a look before they pile up.',
+        action:{ screen:'tm-feedback' }
+      });
+    }
+    var byMarkaz = {};
+    TM_VISITS.forEach(function(v){ byMarkaz[v.markaz] = (byMarkaz[v.markaz]||0) + 1; });
+    var thin = TM_PROFILE.markazList.filter(function(m){ return (byMarkaz[m]||0) <= 2; });
+    if(thin.length){
+      flags.push({
+        count: thin.length,
+        icon:'&#128205;', title: thin.length+' markaz'+(thin.length===1?'':'s')+' with only light coverage this term',
+        desc: thin.join(', ')+' — fewer visits logged than the rest of your patch this term.',
+        action:{ screen:'tm-coobs' }
+      });
+    }
+    return flags;
+  }
+
+  function renderTmRegion(){
+    var html = '';
+    html += crumbs();
+    html += '<div class="page-head"><div>'
+      +   '<h1>My Region</h1>'
+      +   '<p>'+TM_PROFILE.markazList.length+' markaz across Rawalpindi — coverage, co-observations, and what teachers are telling you that AEOs alone might not surface.</p>'
+      + '</div></div>';
+
+    html += '<div class="stats k4">'
+      + '<div class="stat-card accent-primary"><div class="label">Markaz assigned</div><div class="value">'+TM_PROFILE.markazList.length+'</div><div class="sub">'+esc(TM_PROFILE.markazList.join(', '))+'</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Schools reached</div><div class="value">'+TM_PROFILE.schoolsReached+'</div><div class="sub">this term, across all markaz</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Visits logged</div><div class="value">'+TM_PROFILE.visitsThisTerm+'</div><div class="sub">co-observations + solo mentoring visits</div></div>'
+      + '<div class="stat-card accent-warning"><div class="label">Feedback themes open</div><div class="value">'+TM_FEEDBACK.filter(function(f){return f.status!=='building';}).length+'</div><div class="sub">not yet in product build</div></div>'
+      + '</div>';
+
+    var flags = computeTmAttention();
+    html += flags.length ? renderFlagCards(flags) : '';
+
+    html += '<div class="section" style="margin-top:32px;"><div class="section-head"><h2>Markaz coverage</h2><span class="hint">Visits logged this term, by markaz</span></div>';
+    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr><th>Markaz</th><th>Visits</th><th>Schools touched</th></tr></thead><tbody>';
+    TM_PROFILE.markazList.forEach(function(m){
+      var rows = TM_VISITS.filter(function(v){ return v.markaz===m; });
+      var schoolCount = {};
+      rows.forEach(function(v){ schoolCount[v.school]=true; });
+      html += '<tr><td><div class="row-name">'+esc(m)+'</div></td><td class="num">'+rows.length+'</td><td class="num">'+Object.keys(schoolCount).length+'</td></tr>';
+    });
+    html += '</tbody></table></div></div></div>';
+
+    html += '<div class="proto-note"><b>Prototype note:</b> markaz span, schools reached and visit counts here are real — reconstructed from TaleemHub_DB.mentoring_visits for one active Training Manager, since no assignment table links TMs to markaz directly (9 of 10 TM rows have no markaz_name set). The TM’s own name is fictional, per the same rule used for Sadia Iqbal’s identity. Visit notes and feedback themes are illustrative.</div>';
+    root.innerHTML = html;
+  }
+
+  function renderTmCoObs(){
+    var html = '';
+    html += crumbs();
+    html += '<div class="page-head"><div><h1>Co-Observations</h1><p>Every mentoring visit logged this term, most recent first.</p></div></div>';
+    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr>'
+      + '<th>School</th><th>Markaz</th><th>Date</th><th>Class · Subject</th><th>Note</th>'
+      + '</tr></thead><tbody>';
+    TM_VISITS.slice().sort(function(a,b){ return parseIsoDaysAgo(a.date)-parseIsoDaysAgo(b.date); }).forEach(function(v){
+      html += '<tr>'
+        + '<td><div class="row-name">'+esc(v.school)+'</div><div class="hint">EMIS '+esc(v.emis)+'</div></td>'
+        + '<td>'+esc(v.markaz)+'</td>'
+        + '<td>'+parseIsoDaysAgo(v.date)+' days ago</td>'
+        + '<td>'+esc(v.grade)+(v.subject?' · '+esc(v.subject):'')+'</td>'
+        + '<td style="max-width:320px; font-size:13px; color:var(--muted-fg);">'+esc(v.note)+'</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div></div>';
+    html += '<div class="proto-note"><b>Prototype note:</b> school names, EMIS numbers, dates, and class/subject are real (from TaleemHub_DB.mentoring_visits). The note in each row is authored for this prototype, not copied from the real general_feedback/tm_notes columns — those hold real judgment-bearing content about real teachers, which stays out of this prototype the same way HOTS debrief content does elsewhere.</div>';
+    root.innerHTML = html;
+  }
+
+  function renderTmFeedback(){
+    var statusLabel = {new:'New', reviewed:'Reviewed', building:'Building'};
+    var html = '';
+    html += crumbs();
+    html += '<div class="page-head"><div><h1>Feedback Log</h1><p>Problems and requests surfaced directly from teachers on your visits — grouped by theme, not by school, so patterns are visible across your whole region.</p></div></div>';
+    html += '<div class="card">';
+    TM_FEEDBACK.forEach(function(f, i){
+      if(i>0) html += '<div style="border-top:1px solid var(--border);"></div>';
+      html += '<div class="attn-card"><div class="icon sev-'+(f.status==='new'?'high':f.status==='reviewed'?'medium':'low')+'">&#128172;</div><div class="body">'
+        + '<div class="title">'+esc(f.theme)+' <span class="chip" style="margin-left:8px; pointer-events:none;">'+statusLabel[f.status]+'</span></div>'
+        + '<div class="desc">'+esc(f.detail)+'</div>'
+        + '<div class="hint" style="margin-top:6px;">Reported '+f.reportCount+'x · '+esc(f.schools.join(', '))+'</div>'
+        + '</div></div>';
+    });
+    html += '</div>';
+    html += '<div class="proto-note"><b>Prototype note:</b> fully illustrative — there’s no product-feedback-log table in TaleemHub to ground this in, unlike Co-Observations. This is the one TM screen with no real data or existing-screen precedent behind it.</div>';
     root.innerHTML = html;
   }
 
@@ -1979,7 +2155,8 @@
       var isFormsGroup = b.dataset.nav==='my-forms' && (state.screen==='my-forms' || state.screen==='form-detail');
       var isDeoGroup = b.dataset.nav==='deo-district' && state.screen==='deo-district';
       var isMinisterGroup = b.dataset.nav==='minister-overview' && state.screen==='minister-overview';
-      b.classList.toggle('active', isAttn || isSchoolsGroup || isTeachersGroup || isFormsGroup || isDeoGroup || isMinisterGroup);
+      var isTmActive = b.dataset.nav===state.screen && (state.screen==='tm-region' || state.screen==='tm-coobs' || state.screen==='tm-feedback');
+      b.classList.toggle('active', isAttn || isSchoolsGroup || isTeachersGroup || isFormsGroup || isDeoGroup || isMinisterGroup || isTmActive);
     });
     var attnCount = computeAttention().length;
     document.querySelectorAll('.attn-count').forEach(function(el){ el.textContent = attnCount; });
@@ -2014,6 +2191,9 @@
     else if(state.screen==='markaz-history') renderMarkazHistory();
     else if(state.screen==='my-forms') renderMyForms();
     else if(state.screen==='form-detail') renderFormDetail();
+    else if(state.screen==='tm-region') renderTmRegion();
+    else if(state.screen==='tm-coobs') renderTmCoObs();
+    else if(state.screen==='tm-feedback') renderTmFeedback();
     else if(state.screen==='deo-district') renderDeoDistrict();
     else if(state.screen==='deo-markaz-detail') renderDeoMarkazDetail();
     else if(state.screen==='minister-overview') renderMinisterOverview();
@@ -2045,7 +2225,7 @@
     var roleSwitchBtn = e.target.closest('[data-role-switch]');
     if(roleSwitchBtn){
       state.role = roleSwitchBtn.dataset.roleSwitch;
-      state.screen = state.role==='aeo' ? 'attention' : state.role==='deo' ? 'deo-district' : 'minister-overview';
+      state.screen = state.role==='aeo' ? 'attention' : state.role==='tm' ? 'tm-region' : state.role==='deo' ? 'deo-district' : 'minister-overview';
       render(); return;
     }
     var aeoDrillBtn = e.target.closest('[data-goto-aeo-drill]');
