@@ -565,6 +565,8 @@
       <button class="nav-btn" data-role="aeo" data-nav="my-forms">My HOTS forms</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-region">My Region</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-aeos">AEOs</button>
+      <button class="nav-btn" data-role="tm" data-nav="schools">Schools</button>
+      <button class="nav-btn" data-role="tm" data-nav="teachers">Teachers</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-coobs">Co-Observations</button>
       <button class="nav-btn" data-role="deo" data-nav="deo-district">My District</button>
       <button class="nav-btn" data-role="deo" data-nav="schools">Schools</button>
@@ -607,6 +609,8 @@
       <button class="nav-btn" data-role="aeo" data-nav="my-forms"><span class="bn-icon">&#128221;</span>HOTS</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-region"><span class="bn-icon">&#127760;</span>Region</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-aeos"><span class="bn-icon">&#128100;</span>AEOs</button>
+      <button class="nav-btn" data-role="tm" data-nav="schools"><span class="bn-icon">&#127979;</span>Schools</button>
+      <button class="nav-btn" data-role="tm" data-nav="teachers"><span class="bn-icon">&#128101;</span>Teachers</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-coobs"><span class="bn-icon">&#129309;</span>Co-Obs</button>
       <button class="nav-btn" data-role="deo" data-nav="deo-district"><span class="bn-icon">&#127979;</span>District</button>
       <button class="nav-btn" data-role="deo" data-nav="schools"><span class="bn-icon">&#127979;</span>Schools</button>
@@ -974,13 +978,43 @@
       note:'First visit to this school this term — teacher had not received any Digital Coach training yet.'},
   ];
 
+  // Real AEO-conducted visit dates, pulled directly from
+  // TaleemHub_DB.monitoring_visits (the AEO's OWN visit log — distinct from
+  // mentoring_visits, which is the TM's). Every date below is real. Status
+  // in the source table is only 'submitted' or 'draft' — there is no future-
+  // dated "scheduled" concept anywhere in TaleemHub, so "in progress" here
+  // means draft (started, not yet filed), not a calendar booking. RWP Cantt
+  // has zero rows: a real, verified gap, not a missing-data placeholder.
+  var AEO_MONITORING_VISITS = {
+    'Adyala': [{date:'2026-04-08',status:'submitted'},{date:'2026-04-08',status:'submitted'},{date:'2026-04-28',status:'submitted'},{date:'2026-04-28',status:'submitted'}],
+    'RWP Cantt': [],
+    'Bassali Female': [
+      {date:'2026-02-17',status:'submitted'},{date:'2026-02-17',status:'submitted'},{date:'2026-02-19',status:'submitted'},
+      {date:'2026-03-11',status:'submitted'},{date:'2026-03-11',status:'submitted'},{date:'2026-03-11',status:'submitted'},
+      {date:'2026-03-18',status:'submitted'},{date:'2026-03-18',status:'submitted'},{date:'2026-03-18',status:'submitted'},
+      {date:'2026-04-01',status:'submitted'},{date:'2026-04-01',status:'submitted'},{date:'2026-04-01',status:'submitted'},
+      {date:'2026-04-13',status:'submitted'},{date:'2026-04-14',status:'submitted'},
+      {date:'2026-05-06',status:'submitted'},{date:'2026-05-06',status:'submitted'}
+    ],
+    'Bagga Sheikhan': [{date:'2026-02-16',status:'submitted'},{date:'2026-02-17',status:'submitted'}]
+  };
+
+  function aeoActivityFor(markaz, window){
+    var rows = AEO_MONITORING_VISITS[markaz] || [];
+    if(window==='30d') rows = rows.filter(function(v){ return parseIsoDaysAgo(v.date) <= 30; });
+    return {
+      conducted: rows.filter(function(v){ return v.status==='submitted'; }).length,
+      inProgress: rows.filter(function(v){ return v.status==='draft'; }).length
+    };
+  }
+
   // TM_FEEDBACK / the Feedback Log screen is intentionally removed for now —
   // there's no real product-feedback-log table in TaleemHub to ground it in,
   // and it needs a real shippable capture mechanism (e.g. off the WhatsApp
   // voice-note flow already used for mentoring_visits) before it belongs in
   // this prototype rather than as a fully fictional screen.
 
-  var state = { screen:'attention', role:'aeo', schoolId:null, teacherId:null, teacherFilter:'all', teacherSearch:'', visibility:'individual', formId:null, teacherHistoryOrigin:null, stubLabel:null, deoMarkazFilter:null, markazFilter:'all', tmAeoMarkaz:null };
+  var state = { screen:'attention', role:'aeo', schoolId:null, teacherId:null, teacherFilter:'all', teacherSearch:'', visibility:'individual', formId:null, teacherHistoryOrigin:null, stubLabel:null, deoMarkazFilter:null, markazFilter:'all', tmAeoMarkaz:null, tmActivityWindow:'all' };
   var root = document.getElementById('container');
 
   var ROLE_IDENTITY = {
@@ -1650,23 +1684,32 @@
 
   function renderTmAeos(){
     var visited = tmVisitedMarkazSet();
+    var win = state.tmActivityWindow || 'all';
     var html = '';
     html += crumbs();
-    html += '<div class="page-head"><div><h1>AEOs</h1><p>Every AEO assigned to you, per your real roster — visit status alongside each one, not just your own patch.</p></div></div>';
-    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr><th>Markaz (AEO)</th><th>Schools</th><th>Teachers</th><th>HOTS forms</th><th>Visits this term</th><th></th></tr></thead><tbody>';
+    html += '<div class="page-head"><div><h1>AEOs</h1><p>Every AEO assigned to you, per your real roster — visit status and observation activity for each, not just your own patch.</p></div></div>';
+
+    html += '<div class="filter-row">'
+      + '<button class="chip'+(win==='all'?' active':'')+'" data-tm-activity-window="all">All-time</button>'
+      + '<button class="chip'+(win==='30d'?' active':'')+'" data-tm-activity-window="30d">Last 30 days</button>'
+      + '</div>';
+
+    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr><th>Markaz (AEO)</th><th>Schools</th><th>Teachers</th><th>Conducted</th><th>In progress</th><th>Your visits this term</th><th></th></tr></thead><tbody>';
     TM_PROFILE.assignedAeos.forEach(function(a){
-      var count = visited[a.markaz] || 0;
+      var tmCount = visited[a.markaz] || 0;
+      var activity = aeoActivityFor(a.markaz, win);
       html += '<tr data-goto-tm-aeo="'+esc(a.markaz)+'">'
         + '<td><div class="row-name">'+esc(a.markaz)+'</div></td>'
         + '<td class="num">'+a.schools+'</td>'
         + '<td class="num">'+(a.teachers==null?'—':a.teachers)+'</td>'
-        + '<td class="num">'+(a.hotsForms==null?'—':a.hotsForms)+'</td>'
-        + '<td class="num">'+count+'</td>'
+        + '<td class="num">'+activity.conducted+'</td>'
+        + '<td class="num">'+activity.inProgress+'</td>'
+        + '<td class="num">'+tmCount+'</td>'
         + '<td><span class="chevron">&rsaquo;</span></td>'
         + '</tr>';
     });
     html += '</tbody></table></div></div>';
-    html += '<div class="proto-note"><b>Prototype note:</b> excludes one assigned AEO (Lodhran) — no matching school data anywhere in TaleemHub, almost certainly a data-entry error rather than a real assignment.</div>';
+    html += '<div class="proto-note"><b>Prototype note:</b> "Conducted"/"In progress" are real AEO visit counts from TaleemHub_DB.monitoring_visits (the AEO’s own log — separate from your co-observations). There’s no future-dated "scheduled" concept anywhere in TaleemHub, so "In progress" means draft/unsubmitted, not a calendar booking. RWP Cantt shows 0 for both windows — a real, verified gap, not missing data. Excludes one assigned AEO (Lodhran) entirely — no matching school data anywhere in TaleemHub, almost certainly a data-entry error rather than a real assignment.</div>';
     root.innerHTML = html;
   }
 
@@ -1691,17 +1734,19 @@
     root.innerHTML = html;
   }
 
-  // DEO-only markaz scoping. SCHOOLS/TEACHERS hold Adyala's real per-school
-  // roster only — the other 6 markaz in DEO_DISTRICT are aggregate stubs with
-  // no per-school data to honestly list here. Picking one of those shows a
-  // stub card instead of fabricating a school grid for it.
+  // Shared by DEO (full district) and TM (their own assigned AEOs). SCHOOLS/
+  // TEACHERS hold Adyala's real per-school roster only — every other markaz,
+  // for either role, is an aggregate stub with no per-school data to honestly
+  // list here. Deliberately NOT authoring new mock rosters for TM's other
+  // markaz — the point is to show what the real Adyala data looks like, with
+  // an explicit note that the rest would look the same once populated.
   function deoMarkazMismatch(){
-    if(state.role!=='deo') return null;
+    if(state.role!=='deo' && state.role!=='tm') return null;
     if(state.markazFilter==='all' || state.markazFilter==='Adyala') return null;
-    return DEO_DISTRICT.aeos.find(function(a){ return a.markaz===state.markazFilter; }) || null;
+    return knownMarkazList().find(function(a){ return a.markaz===state.markazFilter; }) || null;
   }
   function renderDeoMarkazFilterRow(){
-    var markazList = DEO_DISTRICT.aeos.map(function(a){return a.markaz;});
+    var markazList = knownMarkazList().map(function(a){return a.markaz;});
     var html = '<div class="filter-row">';
     html += '<button class="chip'+(state.markazFilter==='all'?' active':'')+'" data-markaz-filter="all">All markaz</button>';
     markazList.forEach(function(m){
@@ -1717,10 +1762,18 @@
       + '<p style="color:var(--muted-fg); font-size:14px; line-height:1.6; margin-bottom:16px;">This markaz isn’t modeled at the individual school/teacher level in this prototype — only Adyala has a real per-school roster grounded in TaleemHub data. Here’s what’s known at the district-rollup level:</p>'
       + '<div class="stats" style="margin-bottom:0;">'
       + '<div class="stat-card accent-primary"><div class="label">Schools</div><div class="value">'+a.schools+'</div></div>'
-      + '<div class="stat-card accent-primary"><div class="label">Teachers</div><div class="value">'+a.teachers+'</div></div>'
-      + '<div class="stat-card accent-primary"><div class="label">DC average</div><div class="value">'+a.dcAvg+'%</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Teachers</div><div class="value">'+(a.teachers==null?'—':a.teachers)+'</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">'+(a.dcAvg!=null?'DC average':'HOTS forms')+'</div><div class="value">'+(a.dcAvg!=null?a.dcAvg+'%':(a.hotsForms==null?'—':a.hotsForms))+'</div></div>'
       + '</div></div>';
     return html;
+  }
+
+  // Which markaz a role can filter by, and which one row bypasses the stub
+  // (has a real per-school roster). Shared by DEO (full district) and TM
+  // (their own assigned AEOs) so the same infra serves both without
+  // authoring new mock data for either.
+  function knownMarkazList(){
+    return state.role==='tm' ? TM_PROFILE.assignedAeos : DEO_DISTRICT.aeos;
   }
 
   function renderSchools(){
@@ -1732,10 +1785,10 @@
     html += crumbs();
     html += '<div class="page-head"><div>'
           +   '<h1>Schools</h1>'
-          +   '<p>'+(state.role==='deo' ? 'District-wide, filtered by markaz below. Not a ranking; ordered alphabetically.' : 'Adyala markaz · Rawalpindi — how each school is doing. Not a ranking; ordered alphabetically.')+'</p>'
+          +   '<p>'+(state.role==='deo' ? 'District-wide, filtered by markaz below. Not a ranking; ordered alphabetically.' : state.role==='tm' ? 'Across your assigned AEOs, filtered by markaz below. Not a ranking; ordered alphabetically.' : 'Adyala markaz · Rawalpindi — how each school is doing. Not a ranking; ordered alphabetically.')+'</p>'
           + '</div></div>';
 
-    if(state.role==='deo') html += renderDeoMarkazFilterRow();
+    if(state.role==='deo' || state.role==='tm') html += renderDeoMarkazFilterRow();
 
     if(mismatch){
       html += renderMarkazStub(mismatch);
@@ -1766,7 +1819,9 @@
     });
     html += '</div>';
 
-    html += '<div class="proto-note"><b>Prototype note:</b> these 11 schools, their EMIS numbers, and teacher counts are real (pulled live from TaleemHub_DB for Adyala markaz, Rawalpindi) — connectivity, DC engagement, and lesson-plan activity are still illustrative. Ordered by EMIS, not ranked by performance — consistent with the competition-safe framing. DC engagement is primary, lesson-plan activity secondary — each pairs one number with one line-trend, no bar or duplicate encoding. No individual teacher data appears here — this is aggregate only.</div>';
+    html += '<div class="proto-note"><b>Prototype note:</b> these 11 schools, their EMIS numbers, and teacher counts are real (pulled live from TaleemHub_DB for Adyala markaz, Rawalpindi) — connectivity, DC engagement, and lesson-plan activity are still illustrative. Ordered by EMIS, not ranked by performance — consistent with the competition-safe framing. DC engagement is primary, lesson-plan activity secondary — each pairs one number with one line-trend, no bar or duplicate encoding. No individual teacher data appears here — this is aggregate only.'
+      + (state.role==='tm' ? ' Selecting "All markaz" or Adyala above shows this same real Adyala data — the other 3 markaz assigned to you would look identical once their own school/teacher rosters are populated; deliberately not fabricating that detail here.' : '')
+      + '</div>';
     root.innerHTML = html;
   }
 
@@ -1863,9 +1918,9 @@
 
     var html = '';
     html += crumbs();
-    html += '<div class="page-head"><div><h1>Teachers</h1><p>'+(state.role==='deo' ? 'District-wide, filtered by markaz below.' : 'All teachers across every school in your markaz.')+'</p></div></div>';
+    html += '<div class="page-head"><div><h1>Teachers</h1><p>'+(state.role==='deo' ? 'District-wide, filtered by markaz below.' : state.role==='tm' ? 'Across your assigned AEOs, filtered by markaz below.' : 'All teachers across every school in your markaz.')+'</p></div></div>';
 
-    if(state.role==='deo') html += renderDeoMarkazFilterRow();
+    if(state.role==='deo' || state.role==='tm') html += renderDeoMarkazFilterRow();
 
     if(mismatch){
       html += renderMarkazStub(mismatch);
@@ -1907,7 +1962,9 @@
     });
     html += '</tbody></table></div></div>';
 
-    html += '<div class="proto-note"><b>Prototype note:</b> raw DC scores never appear here — only the derived "Needs support" flag (below '+NEEDS_SUPPORT_THRESHOLD+'%) and the "30+ days quiet" filter. In Aggregate visibility mode, names are masked entirely.</div>';
+    html += '<div class="proto-note"><b>Prototype note:</b> raw DC scores never appear here — only the derived "Needs support" flag (below '+NEEDS_SUPPORT_THRESHOLD+'%) and the "30+ days quiet" filter. In Aggregate visibility mode, names are masked entirely.'
+      + (state.role==='tm' ? ' The roster shown is Adyala’s real teachers — the other 3 markaz assigned to you aren’t modeled at this level yet, same as the Schools tab.' : '')
+      + '</div>';
     root.innerHTML = html;
     wireTeacherSearch();
   }
@@ -2295,6 +2352,11 @@
     if(tmAeoBtn){
       state.tmAeoMarkaz = tmAeoBtn.dataset.gotoTmAeo;
       state.screen = 'tm-aeo-detail';
+      render(); return;
+    }
+    var tmActivityBtn = e.target.closest('[data-tm-activity-window]');
+    if(tmActivityBtn){
+      state.tmActivityWindow = tmActivityBtn.dataset.tmActivityWindow;
       render(); return;
     }
     var markazFilterBtn = e.target.closest('[data-markaz-filter]');
