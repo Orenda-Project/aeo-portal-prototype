@@ -1444,13 +1444,13 @@
           + '</div></div>';
 
     html += '<div class="stats k4">'
-      + '<div class="stat-card accent-primary"><div class="label">Schools</div><div class="value">'+stats.schools+'</div><div class="sub">in your roster</div></div>'
-      + '<div class="stat-card accent-primary"><div class="label">Teachers</div><div class="value">'+stats.teachers+'</div><div class="sub">across all schools</div></div>'
-      + '<div class="stat-card accent-primary"><div class="label">On Rumi</div><div class="value">'+stats.teachersOnRumi+'/'+stats.teachers+'</div><div class="sub">teachers active on Rumi</div></div>'
-      + '<div class="stat-card accent-primary"><div class="label">Lesson plans</div><div class="value">'+stats.lpTotal+' '+trendHtml(stats.lpTrend)+'</div><div class="sub">generated this month, markaz-wide</div></div>'
-      + '<div class="stat-card accent-primary"><div class="label">Digital Coach</div><div class="value">'+stats.dcAvg+'% '+trendHtml(stats.dcTrend)+'</div><div class="sub">avg. engagement across schools</div></div>'
-      + '<div class="stat-card accent-primary"><div class="label">HOTS observations</div><div class="value">'+stats.observedThisMonth+'</div><div class="sub">submitted this term</div></div>'
-      + '<div class="stat-card accent-warning"><div class="label">Debriefs pending</div><div class="value">'+stats.debriefsPending+'</div><div class="sub">still to hold with teachers</div></div>'
+      + '<div class="stat-card accent-primary clickable" data-goto="schools"><div class="label">Schools</div><div class="value">'+stats.schools+'</div><div class="sub">in your roster</div></div>'
+      + '<div class="stat-card accent-primary clickable" data-goto="teachers"><div class="label">Teachers</div><div class="value">'+stats.teachers+'</div><div class="sub">across all schools</div></div>'
+      + '<div class="stat-card accent-primary clickable" data-goto="teachers"><div class="label">On Rumi</div><div class="value">'+stats.teachersOnRumi+'/'+stats.teachers+'</div><div class="sub">teachers active on Rumi</div></div>'
+      + '<div class="stat-card accent-primary clickable" data-goto="schools"><div class="label">Lesson plans</div><div class="value">'+stats.lpTotal+' '+trendHtml(stats.lpTrend)+'</div><div class="sub">generated this month, markaz-wide</div></div>'
+      + '<div class="stat-card accent-primary clickable" data-goto="schools"><div class="label">Digital Coach</div><div class="value">'+stats.dcAvg+'% '+trendHtml(stats.dcTrend)+'</div><div class="sub">avg. engagement across schools</div></div>'
+      + '<div class="stat-card accent-primary clickable" data-goto="my-forms"><div class="label">HOTS observations</div><div class="value">'+stats.observedThisMonth+'</div><div class="sub">submitted this term</div></div>'
+      + '<div class="stat-card accent-warning clickable" data-goto="my-forms"><div class="label">Debriefs pending</div><div class="value">'+stats.debriefsPending+'</div><div class="sub">still to hold with teachers</div></div>'
       + '<div class="stat-card accent-warning clickable" data-goto-filtered-teachers="due"><div class="label">Due for a visit</div><div class="value">'+stats.due+'</div><div class="sub">needs support, quiet 30+ days, or not yet on Rumi</div></div>'
       + '</div>';
 
