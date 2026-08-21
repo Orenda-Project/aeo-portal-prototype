@@ -1678,12 +1678,17 @@
       + '</div></div>';
 
     var totalAeoVisits = TM_PROFILE.assignedAeos.reduce(function(sum,a){ return sum + aeoActivityFor(a.markaz, 'all').conducted; }, 0);
+    // "This month" = May 2026, the month the fixed reference date
+    // (2026-05-25, see parseIsoDaysAgo) falls in — real count from TM_VISITS,
+    // not a separate fabricated figure.
+    var sessionsThisMonth = TM_VISITS.filter(function(v){ return v.date.indexOf('2026-05')===0; }).length;
 
     html += '<div class="stats k4">'
       + '<div class="stat-card accent-primary clickable" data-goto="tm-aeos"><div class="label">AEOs assigned</div><div class="value">'+assignedCount+'</div><div class="sub">Across your patch</div></div>'
       + '<div class="stat-card accent-primary clickable" data-goto="schools"><div class="label">Schools reached</div><div class="value">'+TM_PROFILE.schoolsReached+'</div><div class="sub">this term, across all markaz visited</div></div>'
       + '<div class="stat-card accent-primary clickable" data-goto="tm-coobs"><div class="label">Visits logged</div><div class="value">'+TM_PROFILE.visitsThisTerm+'</div><div class="sub">co-observations + solo mentoring visits</div></div>'
       + '<div class="stat-card accent-primary clickable" data-goto="tm-aeos"><div class="label">AEO observations</div><div class="value">'+totalAeoVisits+'</div><div class="sub">all-time, across your AEOs</div></div>'
+      + '<div class="stat-card accent-primary clickable" data-goto="tm-coobs"><div class="label">Coaching sessions this month</div><div class="value">'+sessionsThisMonth+'</div><div class="sub">your own mentoring visits, May 2026</div></div>'
       + '</div>';
 
     var flags = computeTmAttention();
