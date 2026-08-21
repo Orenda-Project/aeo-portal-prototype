@@ -365,6 +365,13 @@
     background:color-mix(in srgb, var(--primary) 8%, transparent);
     padding:3px 10px; border-radius:999px; white-space:nowrap;
   }
+  /* Second color for a distinct stat category (observations/visits vs.
+     schools/teachers) — reuses --accent, the same brand orange already used
+     elsewhere in this app, so it's a second established color, not a new one. */
+  .sc-stats .stat-badge.tint-accent{
+    color:var(--accent);
+    background:color-mix(in srgb, var(--accent) 10%, transparent);
+  }
   .status-card .sc-sub b{ color:var(--fg); font-weight:600; }
   .status-pill{
     flex:0 0 auto; display:inline-flex; align-items:center; gap:5px;
@@ -1685,7 +1692,7 @@
       var pill = count>0 ? '<span class="status-pill good"><span class="dot"></span>Visited</span>' : '<span class="status-pill pending"><span class="dot"></span>No visit yet</span>';
       html += '<div class="status-card" data-goto-tm-aeo="'+esc(a.markaz)+'">'
         + '<div><div class="sc-title">'+esc(a.name)+'<span class="sep">&middot;</span><span class="markaz">'+esc(a.markaz)+'</span></div>'
-        + '<div class="sc-stats"><span class="stat-badge">'+conducted+' observations</span><span class="stat-badge">'+count+' of your visits</span></div></div>'
+        + '<div class="sc-stats"><span class="stat-badge tint-accent">'+conducted+' observations</span><span class="stat-badge tint-accent">'+count+' of your visits</span></div></div>'
         + pill
         + '</div>';
     });
@@ -1741,7 +1748,7 @@
       var pill = tmCount>0 ? '<span class="status-pill good"><span class="dot"></span>Visited</span>' : '<span class="status-pill pending"><span class="dot"></span>No visit yet</span>';
       html += '<div class="status-card" data-goto-tm-aeo="'+esc(a.markaz)+'">'
         + '<div><div class="sc-title">'+esc(a.name)+'<span class="sep">&middot;</span><span class="markaz">'+esc(a.markaz)+'</span></div>'
-        + '<div class="sc-stats"><span class="stat-badge">'+a.schools+' schools</span><span class="stat-badge">'+(a.teachers==null?'—':a.teachers)+' teachers</span><span class="stat-badge">'+activity.conducted+' observations</span><span class="stat-badge">'+tmCount+' of your visits</span></div></div>'
+        + '<div class="sc-stats"><span class="stat-badge">'+a.schools+' schools</span><span class="stat-badge">'+(a.teachers==null?'—':a.teachers)+' teachers</span><span class="stat-badge tint-accent">'+activity.conducted+' observations</span><span class="stat-badge tint-accent">'+tmCount+' of your visits</span></div></div>'
         + pill
         + '</div>';
     });
