@@ -395,17 +395,24 @@
   }
   .name-cell{ display:flex; align-items:center; gap:12px; }
 
-  /* Horizontally-scrolling strip instead of flex-wrap — a wrapped chip row
-     turns into 2-3 stacked lines on mobile ("cluttered"); a single swipeable
-     row stays one line at any width. Search lives outside this row (see
-     .filter-search-row) so it's always visible, not scrolled off with chips. */
-  .filter-row{
-    display:flex; align-items:center; gap:10px; margin-bottom:16px;
-    flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
+  /* A scrolling chip strip was still unclear on mobile ("couldn't tell it was
+     scrollable") — replaced with a single "Filters" trigger that opens a
+     bottom sheet (mobile) / centered modal (desktop) for markaz + status,
+     with "Clear filters" left outside the sheet so it's always reachable
+     without opening it, and search kept outside too since it's most useful
+     immediately visible, not one tap away. */
+  .filter-trigger-row{ display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+  .filter-trigger-btn{
+    appearance:none; cursor:pointer; border:1px solid var(--border); background:var(--bg);
+    color:var(--fg); font-size:13.5px; font-weight:600; padding:9px 16px; border-radius:999px;
+    display:inline-flex; align-items:center; gap:8px;
   }
-  .filter-row::-webkit-scrollbar{ display:none; }
-  .filter-row .chip{ flex:0 0 auto; }
+  .filter-trigger-btn:hover{ background:var(--muted); }
+  .filter-trigger-btn .fc-badge{
+    background:var(--accent); color:#fff; font-size:11px; font-weight:700;
+    padding:1px 8px; border-radius:999px; line-height:1.5;
+  }
+  .filter-trigger-btn .fc-chevron{ color:var(--muted-fg); font-size:11px; }
   .filter-search-row{ display:flex; margin-bottom:16px; }
   .filter-search-row .search{ flex:1; max-width:none; }
   .clear-filters-chip{
@@ -415,6 +422,35 @@
     display:inline-flex; align-items:center; gap:4px;
   }
   .clear-filters-chip:hover{ background:var(--muted); color:var(--fg); }
+
+  .filter-sheet-backdrop{
+    position:fixed; inset:0; background:rgba(13,15,20,.4); z-index:30;
+    display:flex; align-items:flex-end; justify-content:center;
+  }
+  .filter-sheet{
+    background:var(--bg); width:100%; max-width:480px; max-height:82vh; overflow-y:auto;
+    border-radius:20px 20px 0 0; padding:10px 22px 22px; box-shadow:var(--shadow-medium);
+  }
+  .filter-sheet .sheet-handle{
+    width:36px; height:4px; border-radius:999px; background:var(--border);
+    margin:6px auto 18px;
+  }
+  .filter-sheet .sheet-section-label{
+    font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.6px;
+    color:var(--muted-fg); margin-bottom:10px;
+  }
+  .filter-sheet .sheet-chip-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; }
+  .filter-sheet .sheet-chip-row .chip{ flex:0 0 auto; }
+  .filter-sheet .sheet-cta{
+    appearance:none; cursor:pointer; border:0; width:100%;
+    background:var(--primary); color:#fff; font-size:14.5px; font-weight:600;
+    padding:14px; border-radius:12px;
+  }
+  .filter-sheet .sheet-cta:hover{ filter:brightness(1.1); }
+  @media (min-width:640px){
+    .filter-sheet-backdrop{ align-items:center; }
+    .filter-sheet{ border-radius:16px; max-height:78vh; }
+  }
   .chip{
     appearance:none; cursor:pointer; border:1px solid var(--border); background:var(--bg);
     color:var(--muted-fg); font-size:13px; font-weight:600; padding:7px 14px; border-radius:999px;
@@ -1088,7 +1124,7 @@
   // voice-note flow already used for mentoring_visits) before it belongs in
   // this prototype rather than as a fully fictional screen.
 
-  var state = { screen:'attention', role:'aeo', schoolId:null, teacherId:null, teacherFilter:'all', teacherSearch:'', visibility:'individual', formId:null, teacherHistoryOrigin:null, stubLabel:null, deoMarkazFilter:null, markazFilter:'all', tmAeoMarkaz:null, tmActivityWindow:'all' };
+  var state = { screen:'attention', role:'aeo', schoolId:null, teacherId:null, teacherFilter:'all', teacherSearch:'', visibility:'individual', formId:null, teacherHistoryOrigin:null, stubLabel:null, deoMarkazFilter:null, markazFilter:'all', tmAeoMarkaz:null, tmActivityWindow:'all', teacherFilterSheetOpen:false };
   var root = document.getElementById('container');
 
   var ROLE_IDENTITY = {
@@ -1992,25 +2028,43 @@
 
     var html = '';
     html += crumbs();
-    html += '<div class="page-head"><div><h1>Teachers</h1><p>'+(state.role==='deo' ? 'District-wide, filtered by markaz below.' : state.role==='tm' ? 'Across your assigned AEOs, filtered by markaz below.' : 'All teachers across every school in your markaz.')+'</p></div></div>';
+    var scoped = state.role==='deo' || state.role==='tm';
+    html += '<div class="page-head"><div><h1>Teachers</h1><p>'+(state.role==='deo' ? 'District-wide, filtered by markaz.' : state.role==='tm' ? 'Across your assigned AEOs, filtered by markaz.' : 'All teachers across every school in your markaz.')+'</p></div></div>';
 
-    if(state.role==='deo' || state.role==='tm') html += renderDeoMarkazFilterRow();
+    var filterCount = (state.teacherFilter!=='all' ? 1 : 0) + (scoped && state.markazFilter!=='all' ? 1 : 0);
+    var filtersActive = filterCount>0 || !!state.teacherSearch;
+    html += '<div class="filter-trigger-row">'
+      + '<button class="filter-trigger-btn" data-open-filter-sheet="1">&#9881; Filters'+(filterCount>0 ? ' <span class="fc-badge">'+filterCount+'</span>' : '')+' <span class="fc-chevron">&#9662;</span></button>'
+      + (filtersActive ? '<button class="clear-filters-chip" data-clear-teacher-filters="1">&times; Clear filters</button>' : '')
+      + '</div>';
+    html += '<div class="filter-search-row"><input class="search" type="text" placeholder="Search teacher or school…" id="teacherSearch" value="'+esc(state.teacherSearch)+'"></div>';
+
+    if(state.teacherFilterSheetOpen){
+      html += '<div class="filter-sheet-backdrop" data-close-filter-sheet="1"><div class="filter-sheet"><div class="sheet-handle"></div>';
+      if(scoped){
+        var markazList = knownMarkazList().map(function(a){return a.markaz;});
+        html += '<div class="sheet-section-label">Markaz</div><div class="sheet-chip-row">'
+          + '<button class="chip'+(state.markazFilter==='all'?' active':'')+'" data-markaz-filter="all">All markaz</button>';
+        markazList.forEach(function(m){
+          html += '<button class="chip'+(state.markazFilter===m?' active':'')+'" data-markaz-filter="'+esc(m)+'">'+esc(m)+'</button>';
+        });
+        html += '</div>';
+      }
+      html += '<div class="sheet-section-label">Status</div><div class="sheet-chip-row">'
+        + '<button class="chip'+(state.teacherFilter==='all'?' active':'')+'" data-filter="all">All <span class="n">'+all.length+'</span></button>'
+        + '<button class="chip'+(state.teacherFilter==='needs-support'?' active':'')+'" data-filter="needs-support">Needs support <span class="n">'+flaggedTotal+'</span></button>'
+        + '<button class="chip'+(state.teacherFilter==='stale'?' active':'')+'" data-filter="stale">30+ days quiet <span class="n">'+staleTotal+'</span></button>'
+        + '<button class="chip'+(state.teacherFilter==='not-on-rumi'?' active':'')+'" data-filter="not-on-rumi">Not yet on Rumi <span class="n">'+notOnRumiTotal+'</span></button>'
+        + '</div>';
+      html += '<button class="sheet-cta" data-close-filter-sheet="1">Show '+(mismatch ? 0 : filtered.length)+' teacher'+((mismatch?0:filtered.length)===1?'':'s')+'</button>';
+      html += '</div></div>';
+    }
 
     if(mismatch){
       html += renderMarkazStub(mismatch);
       root.innerHTML = html;
       return;
     }
-
-    var filtersActive = state.teacherFilter!=='all' || !!state.teacherSearch || ((state.role==='deo'||state.role==='tm') && state.markazFilter!=='all');
-    html += '<div class="filter-row">'
-      + '<button class="chip'+(state.teacherFilter==='all'?' active':'')+'" data-filter="all">All <span class="n">'+all.length+'</span></button>'
-      + '<button class="chip'+(state.teacherFilter==='needs-support'?' active':'')+'" data-filter="needs-support">Needs support <span class="n">'+flaggedTotal+'</span></button>'
-      + '<button class="chip'+(state.teacherFilter==='stale'?' active':'')+'" data-filter="stale">30+ days quiet <span class="n">'+staleTotal+'</span></button>'
-      + '<button class="chip'+(state.teacherFilter==='not-on-rumi'?' active':'')+'" data-filter="not-on-rumi">Not yet on Rumi <span class="n">'+notOnRumiTotal+'</span></button>'
-      + (filtersActive ? '<button class="clear-filters-chip" data-clear-teacher-filters="1">&times; Clear filters</button>' : '')
-      + '</div>';
-    html += '<div class="filter-search-row"><input class="search" type="text" placeholder="Search teacher or school…" id="teacherSearch" value="'+esc(state.teacherSearch)+'"></div>';
 
     html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr>'
       + '<th>Teacher</th><th>School</th><th>Assignment</th><th>Last DC session</th><th></th>'
@@ -2358,6 +2412,9 @@
   }
 
   function render(){
+    // The filter sheet is a modal overlay, not screen state — never leave it
+    // "stuck" open if the user navigates away from Teachers and back.
+    if(state.screen!=='teachers') state.teacherFilterSheetOpen = false;
     updateNav();
     root.classList.remove('fade-in');
     void root.offsetWidth;
@@ -2495,6 +2552,21 @@
     var filterChip = e.target.closest('[data-filter]');
     if(filterChip){
       state.teacherFilter = filterChip.dataset.filter;
+      renderTeachers();
+      return;
+    }
+    var openFilterSheetBtn = e.target.closest('[data-open-filter-sheet]');
+    if(openFilterSheetBtn){
+      state.teacherFilterSheetOpen = true;
+      renderTeachers();
+      return;
+    }
+    // Checked after every chip/clear handler above (all of which return
+    // early) — clicking a chip inside the sheet never reaches this, even
+    // though the sheet backdrop is an ancestor of every chip.
+    var closeFilterSheetBtn = e.target.closest('[data-close-filter-sheet]');
+    if(closeFilterSheetBtn){
+      state.teacherFilterSheetOpen = false;
       renderTeachers();
       return;
     }
