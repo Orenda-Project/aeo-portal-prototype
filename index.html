@@ -354,6 +354,7 @@
   .status-card:hover{ background:var(--muted); }
   .status-card .sc-title{ font-size:15px; font-weight:600; color:var(--fg); }
   .status-card .sc-title .sep{ color:var(--muted-fg); font-weight:400; margin:0 2px; }
+  .status-card .sc-title .markaz{ color:var(--muted-fg); font-weight:400; }
   .status-card .sc-sub{ margin-top:6px; font-size:12px; color:var(--muted-fg); line-height:1.6; }
   .status-card .sc-sub b{ color:var(--fg); font-weight:600; }
   .status-pill{
@@ -1496,7 +1497,7 @@
       var pill = a.coveragePct>=60 ? '<span class="status-pill good"><span class="dot"></span>On track</span>' : '<span class="status-pill pending"><span class="dot"></span>Needs attention</span>';
       var unclearNote = a.aeoAssignmentUnclear ? '<div class="sc-sub" style="color:var(--warning);">No matching AEO-role record found</div>' : '';
       html += '<div class="status-card"'+clickAttr+'>'
-        + '<div><div class="sc-title">'+esc(a.name)+'<span class="sep">&middot;</span>'+esc(a.markaz)+'</div>'
+        + '<div><div class="sc-title">'+esc(a.name)+'<span class="sep">&middot;</span><span class="markaz">'+esc(a.markaz)+'</span></div>'
         + '<div class="sc-sub"><b>'+a.schools+'</b> schools &nbsp;&middot;&nbsp; <b>'+a.teachers+'</b> teachers &nbsp;&middot;&nbsp; <b>'+a.coveragePct+'%</b> coverage &nbsp;&middot;&nbsp; <b>'+a.dcAvg+'%</b> DC avg</div>'
         + unclearNote
         + '</div>'
@@ -1539,7 +1540,7 @@
       var clickAttr = a.drillable ? ' data-goto-aeo-drill="1"' : ' data-goto-stub="'+esc(a.name+' — '+a.markaz)+'"';
       var connLabel = a.connectivityIssueSchools>0 ? a.connectivityIssueSchools+' school'+(a.connectivityIssueSchools===1?'':'s')+' affected' : 'No connectivity issues';
       html += '<div class="status-card"'+clickAttr+'>'
-        + '<div><div class="sc-title">'+esc(a.name)+'<span class="sep">&middot;</span>'+esc(a.markaz)+'</div>'
+        + '<div><div class="sc-title">'+esc(a.name)+'<span class="sep">&middot;</span><span class="markaz">'+esc(a.markaz)+'</span></div>'
         + '<div class="sc-sub"><b>'+a.visitsThisTerm+'</b> of <b>'+(a.schools*2)+'</b> target visits &nbsp;&middot;&nbsp; <b>'+a.coveragePct+'%</b> coverage &nbsp;&middot;&nbsp; '+esc(connLabel)+'</div></div>'
         + svgSpark(a.dcTrend, 56, 22)
         + '</div>';
@@ -1674,7 +1675,7 @@
       var conducted = aeoActivityFor(a.markaz, 'all').conducted;
       var pill = count>0 ? '<span class="status-pill good"><span class="dot"></span>Visited</span>' : '<span class="status-pill pending"><span class="dot"></span>No visit yet</span>';
       html += '<div class="status-card" data-goto-tm-aeo="'+esc(a.markaz)+'">'
-        + '<div><div class="sc-title">'+esc(a.name)+'<span class="sep">&middot;</span>'+esc(a.markaz)+'</div>'
+        + '<div><div class="sc-title">'+esc(a.name)+'<span class="sep">&middot;</span><span class="markaz">'+esc(a.markaz)+'</span></div>'
         + '<div class="sc-sub"><b>'+conducted+'</b> conducted &nbsp;&middot;&nbsp; <b>'+count+'</b> of your visits</div></div>'
         + pill
         + '</div>';
@@ -1730,7 +1731,7 @@
       var activity = aeoActivityFor(a.markaz, win);
       var pill = tmCount>0 ? '<span class="status-pill good"><span class="dot"></span>Visited</span>' : '<span class="status-pill pending"><span class="dot"></span>No visit yet</span>';
       html += '<div class="status-card" data-goto-tm-aeo="'+esc(a.markaz)+'">'
-        + '<div><div class="sc-title">'+esc(a.name)+'<span class="sep">&middot;</span>'+esc(a.markaz)+'</div>'
+        + '<div><div class="sc-title">'+esc(a.name)+'<span class="sep">&middot;</span><span class="markaz">'+esc(a.markaz)+'</span></div>'
         + '<div class="sc-sub"><b>'+a.schools+'</b> schools &nbsp;&middot;&nbsp; <b>'+(a.teachers==null?'—':a.teachers)+'</b> teachers &nbsp;&middot;&nbsp; <b>'+activity.conducted+'</b> conducted &nbsp;&middot;&nbsp; <b>'+activity.inProgress+'</b> in progress &nbsp;&middot;&nbsp; <b>'+tmCount+'</b> of your visits</div></div>'
         + pill
         + '</div>';
