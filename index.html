@@ -931,12 +931,17 @@
   // zero matching schools anywhere in TaleemHub, and Lodhran is a real, distant
   // district — almost certainly a data-entry error, not a real assignment.
   var TM_PROFILE = {
+    // AEO name is fictional (same rule as everywhere else — real role/markaz,
+    // fictional identity). Reuses the SAME fictional names as the DEO
+    // portal's DEO_DISTRICT for Adyala/RWP Cantt/Bassali Female, so the two
+    // portals describe one consistent fictional roster rather than
+    // contradicting each other on who these AEOs are.
     assignedAeos: [
-      { markaz:'Adyala', drillType:'real', schools:11, teachers:45, hotsForms:5 },
-      { markaz:'RWP Cantt', drillType:'stub', schools:11, teachers:53, hotsForms:11 },
-      { markaz:'Bassali Female', drillType:'stub', schools:13, teachers:52, hotsForms:10,
+      { markaz:'Adyala', name:'Sadia Iqbal', drillType:'real', schools:11, teachers:45, hotsForms:5 },
+      { markaz:'RWP Cantt', name:'Bilal Anwar', drillType:'stub', schools:11, teachers:53, hotsForms:11 },
+      { markaz:'Bassali Female', name:'Nasreen Akhtar', drillType:'stub', schools:13, teachers:52, hotsForms:10,
         note:'This AEO’s own role record is spelled just "Bassali" — the teacher roster only has "Bassali Female". Most likely a male/female AEO track for the same physical markaz, not a data error; treated as the same markaz here.' },
-      { markaz:'Bagga Sheikhan', drillType:'visit-derived', schools:5, teachers:null, hotsForms:null,
+      { markaz:'Bagga Sheikhan', name:'Tariq Javed', drillType:'visit-derived', schools:5, teachers:null, hotsForms:null,
         note:'A strict roster join on this markaz name finds only 1 school — the field is barely populated for this AEO. Using the TM’s own real visit log instead (5 distinct schools this term), since it’s the more complete real signal available.' }
     ],
     skippedAeos: [
@@ -1238,7 +1243,10 @@
     }
     else if(state.screen==='tm-region'){ parts = [{label:'My Region'}]; }
     else if(state.screen==='tm-aeos'){ parts = [{label:'AEOs'}]; }
-    else if(state.screen==='tm-aeo-detail'){ parts = [{label:'AEOs', screen:'tm-aeos'}, {label: state.tmAeoMarkaz || 'AEO'}]; }
+    else if(state.screen==='tm-aeo-detail'){
+      var tmAeo = TM_PROFILE.assignedAeos.find(function(x){ return x.markaz===state.tmAeoMarkaz; });
+      parts = [{label:'AEOs', screen:'tm-aeos'}, {label: tmAeo ? tmAeo.name : (state.tmAeoMarkaz || 'AEO')}];
+    }
     else if(state.screen==='tm-coobs'){ parts = [{label:'Co-Observations'}]; }
     else if(state.screen==='deo-district'){ parts = [{label:'My District'}]; }
     else if(state.screen==='deo-markaz-detail'){
@@ -1610,7 +1618,7 @@
       flags.push({
         count: untouched.length,
         icon:'&#128205;', title: untouched.length+' assigned markaz'+(untouched.length===1?'':'s')+' with no visit logged this term',
-        desc: untouched.map(function(a){return a.markaz;}).join(', ')+' — assigned per your AEO roster, but no mentoring visit recorded yet this term.',
+        desc: untouched.map(function(a){return a.name+' ('+a.markaz+')';}).join(', ')+' — assigned per your AEO roster, but no mentoring visit recorded yet this term.',
         action:{ screen:'tm-aeos' }
       });
     }
@@ -1628,7 +1636,7 @@
       + '</div></div>';
 
     html += '<div class="stats k4">'
-      + '<div class="stat-card accent-primary"><div class="label">AEOs assigned</div><div class="value">'+assignedCount+'</div><div class="sub">'+esc(TM_PROFILE.assignedAeos.map(function(a){return a.markaz;}).join(', '))+'</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">AEOs assigned</div><div class="value">'+assignedCount+'</div><div class="sub">'+esc(TM_PROFILE.assignedAeos.map(function(a){return a.name+' ('+a.markaz+')';}).join(', '))+'</div></div>'
       + '<div class="stat-card accent-primary"><div class="label">Schools reached</div><div class="value">'+TM_PROFILE.schoolsReached+'</div><div class="sub">this term, across all markaz visited</div></div>'
       + '<div class="stat-card accent-primary"><div class="label">Visits logged</div><div class="value">'+TM_PROFILE.visitsThisTerm+'</div><div class="sub">co-observations + solo mentoring visits</div></div>'
       + '<div class="stat-card accent-warning"><div class="label">Assigned AEOs visited</div><div class="value">'+TM_PROFILE.assignedAeos.filter(function(a){return visited[a.markaz];}).length+'/'+assignedCount+'</div><div class="sub">this term</div></div>'
@@ -1638,12 +1646,15 @@
     html += flags.length ? renderFlagCards(flags) : '';
 
     html += '<div class="section" style="margin-top:32px;"><div class="section-head"><h2>Assigned AEOs</h2><span class="hint">Assigned vs. visited this term — not a ranking</span></div>';
-    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr><th>Markaz (AEO)</th><th>Visits this term</th><th>Status</th><th></th></tr></thead><tbody>';
+    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr><th>AEO</th><th>Markaz</th><th>Observations conducted</th><th>Your visits this term</th><th>Status</th><th></th></tr></thead><tbody>';
     TM_PROFILE.assignedAeos.forEach(function(a){
       var count = visited[a.markaz] || 0;
+      var conducted = aeoActivityFor(a.markaz, 'all').conducted;
       var statusCell = count>0 ? '<span class="no-flag">Visited</span>' : '<span class="needs-support">No visit yet</span>';
       html += '<tr data-goto-tm-aeo="'+esc(a.markaz)+'">'
-        + '<td><div class="row-name">'+esc(a.markaz)+'</div></td>'
+        + '<td><div class="row-name">'+esc(a.name)+'</div></td>'
+        + '<td>'+esc(a.markaz)+'</td>'
+        + '<td class="num">'+conducted+'</td>'
         + '<td class="num">'+count+'</td>'
         + '<td>'+statusCell+'</td>'
         + '<td><span class="chevron">&rsaquo;</span></td>'
@@ -1670,7 +1681,7 @@
       return;
     }
 
-    html += '<div class="page-head"><div><h1>'+esc(a.markaz)+'</h1><p>'+(a.drillType==='visit-derived' ? 'Built from this TM’s own visit log — the roster join for this markaz is too sparse to trust on its own.' : 'Aggregate only — no per-school roster modeled for this markaz in this prototype.')+'</p></div></div>';
+    html += '<div class="page-head"><div><h1>'+esc(a.name)+'</h1><p>'+esc(a.markaz)+' &middot; '+(a.drillType==='visit-derived' ? 'Built from this TM’s own visit log — the roster join for this markaz is too sparse to trust on its own.' : 'Aggregate only — no per-school roster modeled for this markaz in this prototype.')+'</p></div></div>';
     html += '<div class="stats">'
       + '<div class="stat-card accent-primary"><div class="label">Schools</div><div class="value">'+a.schools+'</div></div>'
       + '<div class="stat-card accent-primary"><div class="label">Teachers</div><div class="value">'+(a.teachers==null?'—':a.teachers)+'</div></div>'
@@ -1694,12 +1705,13 @@
       + '<button class="chip'+(win==='30d'?' active':'')+'" data-tm-activity-window="30d">Last 30 days</button>'
       + '</div>';
 
-    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr><th>Markaz (AEO)</th><th>Schools</th><th>Teachers</th><th>Conducted</th><th>In progress</th><th>Your visits this term</th><th></th></tr></thead><tbody>';
+    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr><th>AEO</th><th>Markaz</th><th>Schools</th><th>Teachers</th><th>Conducted</th><th>In progress</th><th>Your visits this term</th><th></th></tr></thead><tbody>';
     TM_PROFILE.assignedAeos.forEach(function(a){
       var tmCount = visited[a.markaz] || 0;
       var activity = aeoActivityFor(a.markaz, win);
       html += '<tr data-goto-tm-aeo="'+esc(a.markaz)+'">'
-        + '<td><div class="row-name">'+esc(a.markaz)+'</div></td>'
+        + '<td><div class="row-name">'+esc(a.name)+'</div></td>'
+        + '<td>'+esc(a.markaz)+'</td>'
         + '<td class="num">'+a.schools+'</td>'
         + '<td class="num">'+(a.teachers==null?'—':a.teachers)+'</td>'
         + '<td class="num">'+activity.conducted+'</td>'
