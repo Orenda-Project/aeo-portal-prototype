@@ -1353,10 +1353,10 @@
       }
     }
     else if(state.screen==='markaz-history'){ parts = [{label:'My Patch', screen:'attention'}, {label:'Markaz report history'}]; }
-    else if(state.screen==='my-forms'){ parts = [{label:'My HOTS forms'}]; }
+    else if(state.screen==='my-forms'){ parts = [{label: state.role==='aeo' ? 'My HOTS forms' : ROLE_IDENTITY.aeo.name+'’s HOTS forms'}]; }
     else if(state.screen==='form-detail'){
       var f = MY_FORMS.find(function(x){return x.id===state.formId;});
-      parts = [{label:'My HOTS forms', screen:'my-forms'}, {label: f ? (f.teacher+' · '+f.date) : 'Form'}];
+      parts = [{label: state.role==='aeo' ? 'My HOTS forms' : ROLE_IDENTITY.aeo.name+'’s HOTS forms', screen:'my-forms'}, {label: f ? (f.teacher+' · '+f.date) : 'Form'}];
     }
     else if(state.screen==='tm-region'){ parts = [{label:'My Patch'}]; }
     else if(state.screen==='tm-aeos'){ parts = [{label:'AEOs'}]; }
@@ -2316,11 +2316,15 @@
     var forms = MY_FORMS.slice().sort(function(a,b){ return parseRelativeDays(a.date) - parseRelativeDays(b.date); });
     var pendingCount = forms.filter(function(f){return f.debriefStatus==='pending';}).length;
 
+    // Same "not actually yours when you drilled in" fix as My Patch — the
+    // heading names the AEO whose forms these are, rather than "My HOTS
+    // forms" which only makes sense from the AEO's own login.
+    var isOwnForms = state.role==='aeo';
     var html = '';
     html += crumbs();
     html += '<div class="page-head"><div>'
-          +   '<h1>My HOTS forms</h1>'
-          +   '<p>Every classroom observation you’ve submitted via /observe, most recent first — your own record, not shared with teachers.</p>'
+          +   '<h1>'+(isOwnForms ? 'My HOTS forms' : esc(ROLE_IDENTITY.aeo.name)+'’s HOTS forms')+'</h1>'
+          +   '<p>'+(isOwnForms ? 'Every classroom observation you’ve submitted via /observe, most recent first — your own record, not shared with teachers.' : 'Every classroom observation '+esc(ROLE_IDENTITY.aeo.name)+' has submitted via /observe, most recent first.')+'</p>'
           + '</div></div>';
 
     html += '<div class="stats">'
