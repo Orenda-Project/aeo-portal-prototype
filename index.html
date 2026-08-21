@@ -1635,11 +1635,13 @@
       +   '<p>'+assignedCount+' AEOs assigned to you across Rawalpindi — coverage, co-observations, and what teachers are telling you that AEOs alone might not surface.</p>'
       + '</div></div>';
 
+    var totalAeoVisits = TM_PROFILE.assignedAeos.reduce(function(sum,a){ return sum + aeoActivityFor(a.markaz, 'all').conducted; }, 0);
+
     html += '<div class="stats k4">'
-      + '<div class="stat-card accent-primary"><div class="label">AEOs assigned</div><div class="value">'+assignedCount+'</div><div class="sub">'+esc(TM_PROFILE.assignedAeos.map(function(a){return a.name+' ('+a.markaz+')';}).join(', '))+'</div></div>'
-      + '<div class="stat-card accent-primary"><div class="label">Schools reached</div><div class="value">'+TM_PROFILE.schoolsReached+'</div><div class="sub">this term, across all markaz visited</div></div>'
-      + '<div class="stat-card accent-primary"><div class="label">Visits logged</div><div class="value">'+TM_PROFILE.visitsThisTerm+'</div><div class="sub">co-observations + solo mentoring visits</div></div>'
-      + '<div class="stat-card accent-warning"><div class="label">Assigned AEOs visited</div><div class="value">'+TM_PROFILE.assignedAeos.filter(function(a){return visited[a.markaz];}).length+'/'+assignedCount+'</div><div class="sub">this term</div></div>'
+      + '<div class="stat-card accent-primary clickable" data-goto="tm-aeos"><div class="label">AEOs assigned</div><div class="value">'+assignedCount+'</div><div class="sub">Across your patch</div></div>'
+      + '<div class="stat-card accent-primary clickable" data-goto="schools"><div class="label">Schools reached</div><div class="value">'+TM_PROFILE.schoolsReached+'</div><div class="sub">this term, across all markaz visited</div></div>'
+      + '<div class="stat-card accent-primary clickable" data-goto="tm-coobs"><div class="label">Visits logged</div><div class="value">'+TM_PROFILE.visitsThisTerm+'</div><div class="sub">co-observations + solo mentoring visits</div></div>'
+      + '<div class="stat-card accent-primary clickable" data-goto="tm-aeos"><div class="label">AEO visits</div><div class="value">'+totalAeoVisits+'</div><div class="sub">conducted, all-time, across your AEOs</div></div>'
       + '</div>';
 
     var flags = computeTmAttention();
