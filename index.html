@@ -169,6 +169,7 @@
   .page-head h1{
     font-size:30px; font-weight:300; margin:0 0 6px; letter-spacing:-.2px;
   }
+  .page-subhead{ font-size:13.5px; font-weight:600; color:var(--muted-fg); margin:0 0 8px; }
   .page-head p{ margin:0; color:var(--muted-fg); font-size:14px; max-width:64ch; }
   .page-head .actions{ display:flex; gap:10px; }
 
@@ -1438,6 +1439,7 @@
     // when it's actually your own patch.
     html += '<div class="page-head"><div>'
           +   '<h1>'+(state.role==='aeo' ? 'My Patch' : esc(ROLE_IDENTITY.aeo.name))+'</h1>'
+          +   (state.role==='aeo' ? '' : '<div class="page-subhead">Adyala markaz</div>')
           +   '<p>Adyala markaz, at a glance — what actually needs your time this week, and where a little support would help most.</p>'
           + '</div></div>';
 
