@@ -1678,17 +1678,12 @@
       + '</div></div>';
 
     var totalAeoVisits = TM_PROFILE.assignedAeos.reduce(function(sum,a){ return sum + aeoActivityFor(a.markaz, 'all').conducted; }, 0);
-    // "This month" = May 2026, the month the fixed reference date
-    // (2026-05-25, see parseIsoDaysAgo) falls in — real count from TM_VISITS,
-    // not a separate fabricated figure.
-    var sessionsThisMonth = TM_VISITS.filter(function(v){ return v.date.indexOf('2026-05')===0; }).length;
 
     html += '<div class="stats k4">'
       + '<div class="stat-card accent-primary clickable" data-goto="tm-aeos"><div class="label">AEOs assigned</div><div class="value">'+assignedCount+'</div><div class="sub">Across your patch</div></div>'
       + '<div class="stat-card accent-primary clickable" data-goto="schools"><div class="label">Schools reached</div><div class="value">'+TM_PROFILE.schoolsReached+'</div><div class="sub">this term, across all markaz visited</div></div>'
       + '<div class="stat-card accent-primary clickable" data-goto="tm-coobs"><div class="label">Visits logged</div><div class="value">'+TM_PROFILE.visitsThisTerm+'</div><div class="sub">co-observations + solo mentoring visits</div></div>'
       + '<div class="stat-card accent-primary clickable" data-goto="tm-aeos"><div class="label">AEO observations</div><div class="value">'+totalAeoVisits+'</div><div class="sub">all-time, across your AEOs</div></div>'
-      + '<div class="stat-card accent-primary clickable" data-goto="tm-coobs"><div class="label">Coaching sessions this month</div><div class="value">'+sessionsThisMonth+'</div><div class="sub">your own mentoring visits, May 2026</div></div>'
       + '</div>';
 
     var flags = computeTmAttention();
@@ -1851,10 +1846,17 @@
       return;
     }
 
-    html += '<div class="stats">'
+    // Derived from each school's existing teacherCount + dcScore (no new
+    // per-school field authored) — an illustrative estimate of Digital Coach
+    // sessions teachers ran on their own this month, same "real structure,
+    // illustrative number" treatment as everything else on this screen.
+    var dcSessionsThisMonth = SCHOOLS.reduce(function(a,s){ return a + Math.round(s.teacherCount * s.dcScore/100 * 3); }, 0);
+
+    html += '<div class="stats k4">'
       + '<div class="stat-card accent-primary"><div class="label">Schools</div><div class="value">'+SCHOOLS.length+'</div><div class="sub">in your roster</div></div>'
       + '<div class="stat-card accent-primary"><div class="label">Teachers</div><div class="value">'+totalTeachers+'</div><div class="sub">across all schools</div></div>'
       + '<div class="stat-card accent-primary"><div class="label">Lesson plans this month</div><div class="value">'+totalLp+'</div><div class="sub">generated markaz-wide</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Coaching sessions this month</div><div class="value">'+dcSessionsThisMonth+'</div><div class="sub">Conducted by teachers</div></div>'
       + '</div>';
 
     // Ordered by real EMIS number — a neutral administrative ID, not a
