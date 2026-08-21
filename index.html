@@ -1486,25 +1486,20 @@
     html += flags.length ? renderFlagCards(flags) : '';
 
     html += '<div class="section" style="margin-top:32px;"><div class="section-head"><h2>Markaz</h2><span class="hint">Alphabetical, not ranked</span></div>';
-    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr>'
-      + '<th>AEO</th><th>Markaz</th><th>Schools</th><th>Teachers</th><th>Coverage</th><th>DC avg</th><th></th>'
-      + '</tr></thead><tbody>';
+    html += '<div class="card"><div class="status-list">';
     aeos.forEach(function(a){
       var clickAttr = a.drillable ? ' data-goto-aeo-drill="1"' : ' data-goto-stub="'+esc(a.name+' — '+a.markaz)+'"';
-      var nameCell = a.aeoAssignmentUnclear
-        ? '<div class="row-name">'+esc(a.name)+'</div><div class="hint" style="margin-top:2px;">No matching AEO-role record found</div>'
-        : '<div class="row-name">'+esc(a.name)+'</div>';
-      html += '<tr'+clickAttr+'>'
-        + '<td>'+nameCell+'</td>'
-        + '<td>'+esc(a.markaz)+'</td>'
-        + '<td class="num">'+a.schools+'</td>'
-        + '<td class="num">'+a.teachers+'</td>'
-        + '<td class="num">'+a.coveragePct+'%</td>'
-        + '<td class="num">'+a.dcAvg+'%</td>'
-        + '<td><span class="chevron">&rsaquo;</span></td>'
-        + '</tr>';
+      var pill = a.coveragePct>=60 ? '<span class="status-pill good"><span class="dot"></span>On track</span>' : '<span class="status-pill pending"><span class="dot"></span>Needs attention</span>';
+      var unclearNote = a.aeoAssignmentUnclear ? '<div class="sc-sub" style="color:var(--warning);">No matching AEO-role record found</div>' : '';
+      html += '<div class="status-card"'+clickAttr+'>'
+        + '<div><div class="sc-title">'+esc(a.name)+'<span class="sep">&middot;</span>'+esc(a.markaz)+'</div>'
+        + '<div class="sc-sub"><b>'+a.schools+'</b> schools &nbsp;&middot;&nbsp; <b>'+a.teachers+'</b> teachers &nbsp;&middot;&nbsp; <b>'+a.coveragePct+'%</b> coverage &nbsp;&middot;&nbsp; <b>'+a.dcAvg+'%</b> DC avg</div>'
+        + unclearNote
+        + '</div>'
+        + pill
+        + '</div>';
     });
-    html += '</tbody></table></div></div></div>';
+    html += '</div></div></div>';
 
     html += '<div class="proto-note"><b>Prototype note:</b> 5 of Rawalpindi district’s 16 markaz are grounded in real TaleemHub data — school names, EMIS numbers and teacher headcounts for Adyala (drillable), Rawalpindi Cantt, Bassali, Chak Beli Khan and Shakrial are a real, live roster verified against TaleemHub_DB. Adyala’s coverage/trend/connectivity are additionally derived from Sadia Iqbal’s actual HOTS submissions. Performance numbers, AEO names on the other 4 markaz, and individual teachers remain fictional — no real names sit next to invented scores. Shakrial has real school data but no matching AEO-role record in TaleemHub, so it’s flagged "AEO unassigned" rather than inventing one. Coverage is calculated against the confirmed real cadence of 2 visits per school per month. The remaining 11 markaz aren’t modeled — this is a representative sample, not the full district. No individual teacher or single-school data appears on this screen by default — drilling into a markaz is the only way to reach that level.</div>';
     root.innerHTML = html;
@@ -1533,24 +1528,19 @@
       +   '<p>'+(def ? esc(def.reason) : 'Detail behind a district-level flag.')+'</p>'
       + '</div></div>';
 
-    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr>'
-      + '<th>AEO</th><th>Markaz</th><th>Visits this term</th><th>Target</th><th>Coverage</th><th>DC trend</th><th>Connectivity</th><th></th>'
-      + '</tr></thead><tbody>';
+    // No status pill here, deliberately — every row already matches the flag
+    // that brought you to this screen, so a pill would just restate that.
+    html += '<div class="card"><div class="status-list">';
     rows.forEach(function(a){
       var clickAttr = a.drillable ? ' data-goto-aeo-drill="1"' : ' data-goto-stub="'+esc(a.name+' — '+a.markaz)+'"';
-      var connLabel = a.connectivityIssueSchools>0 ? a.connectivityIssueSchools+' school'+(a.connectivityIssueSchools===1?'':'s') : 'None';
-      html += '<tr'+clickAttr+'>'
-        + '<td><div class="row-name">'+esc(a.name)+'</div></td>'
-        + '<td>'+esc(a.markaz)+'</td>'
-        + '<td class="num">'+a.visitsThisTerm+'</td>'
-        + '<td class="num">'+(a.schools*2)+'</td>'
-        + '<td class="num">'+a.coveragePct+'%</td>'
-        + '<td>'+svgSpark(a.dcTrend, 64, 22)+'</td>'
-        + '<td>'+esc(connLabel)+'</td>'
-        + '<td><span class="chevron">&rsaquo;</span></td>'
-        + '</tr>';
+      var connLabel = a.connectivityIssueSchools>0 ? a.connectivityIssueSchools+' school'+(a.connectivityIssueSchools===1?'':'s')+' affected' : 'No connectivity issues';
+      html += '<div class="status-card"'+clickAttr+'>'
+        + '<div><div class="sc-title">'+esc(a.name)+'<span class="sep">&middot;</span>'+esc(a.markaz)+'</div>'
+        + '<div class="sc-sub"><b>'+a.visitsThisTerm+'</b> of <b>'+(a.schools*2)+'</b> target visits &nbsp;&middot;&nbsp; <b>'+a.coveragePct+'%</b> coverage &nbsp;&middot;&nbsp; '+esc(connLabel)+'</div></div>'
+        + svgSpark(a.dcTrend, 56, 22)
+        + '</div>';
     });
-    html += '</tbody></table></div></div>';
+    html += '</div></div>';
 
     if(rows.length===0){
       html += '<div class="attn-empty"><div class="big">&#10003;</div>No markaz currently match this flag.</div>';
@@ -1730,22 +1720,18 @@
       + '<button class="chip'+(win==='30d'?' active':'')+'" data-tm-activity-window="30d">Last 30 days</button>'
       + '</div>';
 
-    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr><th>AEO</th><th>Markaz</th><th>Schools</th><th>Teachers</th><th>Conducted</th><th>In progress</th><th>Your visits this term</th><th></th></tr></thead><tbody>';
+    html += '<div class="card"><div class="status-list">';
     TM_PROFILE.assignedAeos.forEach(function(a){
       var tmCount = visited[a.markaz] || 0;
       var activity = aeoActivityFor(a.markaz, win);
-      html += '<tr data-goto-tm-aeo="'+esc(a.markaz)+'">'
-        + '<td><div class="row-name">'+esc(a.name)+'</div></td>'
-        + '<td>'+esc(a.markaz)+'</td>'
-        + '<td class="num">'+a.schools+'</td>'
-        + '<td class="num">'+(a.teachers==null?'—':a.teachers)+'</td>'
-        + '<td class="num">'+activity.conducted+'</td>'
-        + '<td class="num">'+activity.inProgress+'</td>'
-        + '<td class="num">'+tmCount+'</td>'
-        + '<td><span class="chevron">&rsaquo;</span></td>'
-        + '</tr>';
+      var pill = tmCount>0 ? '<span class="status-pill good"><span class="dot"></span>Visited</span>' : '<span class="status-pill pending"><span class="dot"></span>No visit yet</span>';
+      html += '<div class="status-card" data-goto-tm-aeo="'+esc(a.markaz)+'">'
+        + '<div><div class="sc-title">'+esc(a.name)+'<span class="sep">&middot;</span>'+esc(a.markaz)+'</div>'
+        + '<div class="sc-sub"><b>'+a.schools+'</b> schools &nbsp;&middot;&nbsp; <b>'+(a.teachers==null?'—':a.teachers)+'</b> teachers &nbsp;&middot;&nbsp; <b>'+activity.conducted+'</b> conducted &nbsp;&middot;&nbsp; <b>'+activity.inProgress+'</b> in progress &nbsp;&middot;&nbsp; <b>'+tmCount+'</b> of your visits</div></div>'
+        + pill
+        + '</div>';
     });
-    html += '</tbody></table></div></div>';
+    html += '</div></div>';
     html += '<div class="proto-note"><b>Prototype note:</b> "Conducted"/"In progress" are real AEO visit counts from TaleemHub_DB.monitoring_visits (the AEO’s own log — separate from your co-observations). There’s no future-dated "scheduled" concept anywhere in TaleemHub, so "In progress" means draft/unsubmitted, not a calendar booking. RWP Cantt shows 0 for both windows — a real, verified gap, not missing data. Excludes one assigned AEO (Lodhran) entirely — no matching school data anywhere in TaleemHub, almost certainly a data-entry error rather than a real assignment.</div>';
     root.innerHTML = html;
   }
