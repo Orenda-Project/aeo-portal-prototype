@@ -1842,12 +1842,16 @@
     html += crumbs();
     html += '<div class="page-head"><div><h1>My Observations</h1><p>Every mentoring visit you’ve logged this term, most recent first — your own record.</p></div></div>';
 
+    var schoolsReached = {};
+    visits.forEach(function(v){ schoolsReached[v.school] = true; });
+
     html += '<div class="stats">'
       + '<div class="stat-card accent-primary"><div class="label">Visits logged</div><div class="value">'+visits.length+'</div><div class="sub">this term</div></div>'
+      + '<div class="stat-card accent-primary"><div class="label">Schools reached</div><div class="value">'+Object.keys(schoolsReached).length+'</div><div class="sub">distinct schools this term</div></div>'
       + '</div>';
 
     html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr>'
-      + '<th>School</th><th>Markaz</th><th>Date</th><th>Class · Subject</th><th></th>'
+      + '<th>School</th><th>Markaz</th><th>Date</th><th>Class · Subject</th><th>Status</th><th></th>'
       + '</tr></thead><tbody>';
     visits.forEach(function(v){
       html += '<tr data-goto-tm-observation="'+esc(v.id)+'">'
@@ -1855,6 +1859,7 @@
         + '<td>'+esc(v.markaz)+'</td>'
         + '<td>'+parseIsoDaysAgo(v.date)+' days ago</td>'
         + '<td>'+esc(v.grade)+(v.subject?' · '+esc(v.subject):'')+'</td>'
+        + '<td><span class="debrief-pill done">Submitted</span></td>'
         + '<td><span class="chevron">&rsaquo;</span></td>'
         + '</tr>';
     });
