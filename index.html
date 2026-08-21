@@ -336,6 +336,32 @@
     background:var(--muted); padding:3px 9px; border-radius:999px;
   }
 
+  /* Status-led roster card — replaces a horizontal-scrolling table for lists
+     that are really "one entity + one status", so it reads fine on mobile
+     without a scroll container. Title line (name · context), a status pill
+     pinned top-right, then a single subtext line carrying the numbers. */
+  .status-list{ display:flex; flex-direction:column; }
+  .status-card{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+    padding:16px 18px; border-bottom:1px solid var(--border); cursor:pointer;
+    transition:background .15s ease;
+  }
+  .status-card:last-child{ border-bottom:0; }
+  .status-card:hover{ background:var(--muted); }
+  .status-card .sc-title{ font-size:15px; font-weight:700; color:var(--fg); }
+  .status-card .sc-title .sep{ color:var(--muted-fg); font-weight:400; margin:0 2px; }
+  .status-card .sc-sub{ margin-top:6px; font-size:13px; color:var(--muted-fg); }
+  .status-card .sc-sub b{ color:var(--fg); font-weight:600; }
+  .status-pill{
+    flex:0 0 auto; display:inline-flex; align-items:center; gap:6px;
+    font-size:12px; font-weight:600; padding:5px 11px; border-radius:999px; white-space:nowrap;
+  }
+  .status-pill .dot{ width:6px; height:6px; border-radius:50%; }
+  .status-pill.good{ background:color-mix(in srgb, var(--success) 15%, transparent); color:var(--success); }
+  .status-pill.good .dot{ background:var(--success); }
+  .status-pill.pending{ background:color-mix(in srgb, var(--warning) 18%, transparent); color:var(--warning); }
+  .status-pill.pending .dot{ background:var(--warning); }
+
   .avatar-sm{
     width:34px;height:34px;border-radius:50%;
     background:var(--muted); color:var(--primary);
@@ -563,7 +589,7 @@
       <button class="nav-btn" data-role="aeo" data-nav="schools">Schools</button>
       <button class="nav-btn" data-role="aeo" data-nav="teachers">Teachers</button>
       <button class="nav-btn" data-role="aeo" data-nav="my-forms">My HOTS forms</button>
-      <button class="nav-btn" data-role="tm" data-nav="tm-region">My Region</button>
+      <button class="nav-btn" data-role="tm" data-nav="tm-region">My Patch</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-aeos">AEOs</button>
       <button class="nav-btn" data-role="tm" data-nav="schools">Schools</button>
       <button class="nav-btn" data-role="tm" data-nav="teachers">Teachers</button>
@@ -607,7 +633,7 @@
       <button class="nav-btn" data-role="aeo" data-nav="schools"><span class="bn-icon">&#127979;</span>Schools</button>
       <button class="nav-btn" data-role="aeo" data-nav="teachers"><span class="bn-icon">&#128101;</span>Teachers</button>
       <button class="nav-btn" data-role="aeo" data-nav="my-forms"><span class="bn-icon">&#128221;</span>HOTS</button>
-      <button class="nav-btn" data-role="tm" data-nav="tm-region"><span class="bn-icon">&#127760;</span>Region</button>
+      <button class="nav-btn" data-role="tm" data-nav="tm-region"><span class="bn-icon">&#127760;</span>Patch</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-aeos"><span class="bn-icon">&#128100;</span>AEOs</button>
       <button class="nav-btn" data-role="tm" data-nav="schools"><span class="bn-icon">&#127979;</span>Schools</button>
       <button class="nav-btn" data-role="tm" data-nav="teachers"><span class="bn-icon">&#128101;</span>Teachers</button>
@@ -1241,7 +1267,7 @@
       var f = MY_FORMS.find(function(x){return x.id===state.formId;});
       parts = [{label:'My HOTS forms', screen:'my-forms'}, {label: f ? (f.teacher+' · '+f.date) : 'Form'}];
     }
-    else if(state.screen==='tm-region'){ parts = [{label:'My Region'}]; }
+    else if(state.screen==='tm-region'){ parts = [{label:'My Patch'}]; }
     else if(state.screen==='tm-aeos'){ parts = [{label:'AEOs'}]; }
     else if(state.screen==='tm-aeo-detail'){
       var tmAeo = TM_PROFILE.assignedAeos.find(function(x){ return x.markaz===state.tmAeoMarkaz; });
@@ -1631,7 +1657,7 @@
     var html = '';
     html += crumbs();
     html += '<div class="page-head"><div>'
-      +   '<h1>My Region</h1>'
+      +   '<h1>My Patch</h1>'
       +   '<p>'+assignedCount+' AEOs assigned to you across Rawalpindi — coverage, co-observations, and what teachers are telling you that AEOs alone might not surface.</p>'
       + '</div></div>';
 
@@ -1648,21 +1674,18 @@
     html += flags.length ? renderFlagCards(flags) : '';
 
     html += '<div class="section" style="margin-top:32px;"><div class="section-head"><h2>Assigned AEOs</h2><span class="hint">Assigned vs. visited this term — not a ranking</span></div>';
-    html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr><th>AEO</th><th>Markaz</th><th>Observations conducted</th><th>Your visits this term</th><th>Status</th><th></th></tr></thead><tbody>';
+    html += '<div class="card"><div class="status-list">';
     TM_PROFILE.assignedAeos.forEach(function(a){
       var count = visited[a.markaz] || 0;
       var conducted = aeoActivityFor(a.markaz, 'all').conducted;
-      var statusCell = count>0 ? '<span class="no-flag">Visited</span>' : '<span class="needs-support">No visit yet</span>';
-      html += '<tr data-goto-tm-aeo="'+esc(a.markaz)+'">'
-        + '<td><div class="row-name">'+esc(a.name)+'</div></td>'
-        + '<td>'+esc(a.markaz)+'</td>'
-        + '<td class="num">'+conducted+'</td>'
-        + '<td class="num">'+count+'</td>'
-        + '<td>'+statusCell+'</td>'
-        + '<td><span class="chevron">&rsaquo;</span></td>'
-        + '</tr>';
+      var pill = count>0 ? '<span class="status-pill good"><span class="dot"></span>Visited</span>' : '<span class="status-pill pending"><span class="dot"></span>No visit yet</span>';
+      html += '<div class="status-card" data-goto-tm-aeo="'+esc(a.markaz)+'">'
+        + '<div><div class="sc-title">'+esc(a.name)+'<span class="sep">&middot;</span>'+esc(a.markaz)+'</div>'
+        + '<div class="sc-sub"><b>'+conducted+'</b> conducted &nbsp;&middot;&nbsp; <b>'+count+'</b> of your visits</div></div>'
+        + pill
+        + '</div>';
     });
-    html += '</tbody></table></div></div></div>';
+    html += '</div></div></div>';
 
     html += '<div class="proto-note"><b>Prototype note:</b> the 4 assigned AEOs above come from users.assigned_aeos, resolved to each AEO’s real markaz — this is the actual assignment, not a reconstruction from visit activity. A 5th assigned AEO (Lodhran) is excluded: zero matching schools anywhere in TaleemHub, almost certainly a data-entry error (Lodhran is a real, distant district). Visit counts are real, from TaleemHub_DB.mentoring_visits. The TM’s own name is fictional, per the same rule used for Sadia Iqbal’s identity. Note this TM also visited Sihal Female this term — a real markaz outside their assigned roster — visible on the Co-Observations tab.</div>';
     root.innerHTML = html;
