@@ -1057,7 +1057,8 @@
 
   function aeoActivityFor(markaz, window){
     var rows = AEO_MONITORING_VISITS[markaz] || [];
-    if(window==='30d') rows = rows.filter(function(v){ return parseIsoDaysAgo(v.date) <= 30; });
+    if(window==='7d') rows = rows.filter(function(v){ return parseIsoDaysAgo(v.date) <= 7; });
+    else if(window==='30d') rows = rows.filter(function(v){ return parseIsoDaysAgo(v.date) <= 30; });
     return {
       conducted: rows.filter(function(v){ return v.status==='submitted'; }).length,
       inProgress: rows.filter(function(v){ return v.status==='draft'; }).length
@@ -1743,6 +1744,7 @@
     html += '<div class="filter-row">'
       + '<button class="chip'+(win==='all'?' active':'')+'" data-tm-activity-window="all">All-time</button>'
       + '<button class="chip'+(win==='30d'?' active':'')+'" data-tm-activity-window="30d">Last 30 days</button>'
+      + '<button class="chip'+(win==='7d'?' active':'')+'" data-tm-activity-window="7d">Last 7 days</button>'
       + '</div>';
 
     html += '<div class="card"><div class="status-list">';
@@ -1757,7 +1759,7 @@
         + '</div>';
     });
     html += '</div></div>';
-    html += '<div class="proto-note"><b>Prototype note:</b> "Observations" is a real AEO visit count from TaleemHub_DB.monitoring_visits (the AEO’s own log — separate from your co-observations). RWP Cantt shows 0 in both windows — a real, verified gap, not missing data. Excludes one assigned AEO (Lodhran) entirely — no matching school data anywhere in TaleemHub, almost certainly a data-entry error rather than a real assignment.</div>';
+    html += '<div class="proto-note"><b>Prototype note:</b> "Observations" is a real AEO visit count from TaleemHub_DB.monitoring_visits (the AEO’s own log — separate from your co-observations). RWP Cantt shows 0 in every window — a real, verified gap, not missing data. Excludes one assigned AEO (Lodhran) entirely — no matching school data anywhere in TaleemHub, almost certainly a data-entry error rather than a real assignment.</div>';
     root.innerHTML = html;
   }
 
