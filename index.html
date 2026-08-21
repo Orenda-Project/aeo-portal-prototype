@@ -1068,30 +1068,34 @@
   // strengths_observed / action_items / tm_notes exist as real columns on this
   // table but their CONTENT is not pulled here — same judgment-bearing-content
   // rule as HOTS forms elsewhere, so `note` below is authored, not copied.
+  // teacher: fictional, per the same rule as everywhere else — deliberately
+  // NOT reused from the existing TEACHERS roster (even for schools that
+  // overlap, e.g. Khasalaa Kallan/Bodial) so a name here never implies a
+  // shared identity/score history with a specific TEACHERS record.
   var TM_VISITS = [
-    {id:'v1', school:'GGES Mera Mohra', emis:'37330524', date:'2026-05-19', grade:'Class 4', subject:'English', markaz:'Bassali Female', status:'submitted',
+    {id:'v1', teacher:'Farzana Bibi', school:'GGES Mera Mohra', emis:'37330524', date:'2026-05-19', grade:'Class 4', subject:'English', markaz:'Bassali Female', status:'submitted',
       note:'Co-observed with the markaz AEO — strong pair-work routine, but English vocabulary drilled with translation only, no visual scaffolds.'},
-    {id:'v2', school:'GGES Banda', emis:'37330551', date:'2026-05-19', grade:'Class 5', subject:'Urdu', markaz:'Bassali Female', status:'submitted',
+    {id:'v2', teacher:'Nasreen Kausar', school:'GGES Banda', emis:'37330551', date:'2026-05-19', grade:'Class 5', subject:'Urdu', markaz:'Bassali Female', status:'submitted',
       note:'Reading fluency practice was well-paced; asked the teacher whether audio playback on Rumi ever glitches — she said yes, twice this month.'},
-    {id:'v3', school:'GGES Jharaki', emis:'37330555', date:'2026-05-19', grade:'Class 5', subject:'Maths', markaz:'Bassali Female', status:'submitted',
+    {id:'v3', teacher:'Samina Yousaf', school:'GGES Jharaki', emis:'37330555', date:'2026-05-19', grade:'Class 5', subject:'Maths', markaz:'Bassali Female', status:'submitted',
       note:'Fractions lesson, mostly procedural. Teacher asked for shorter Digital Coach clips — says the current length is hard to fit before recess.'},
-    {id:'v4', school:'GGPS Jorian', emis:'37330565', date:'2026-05-13', grade:'Class 4', subject:'English', markaz:'Bagga Sheikhan', status:'submitted',
+    {id:'v4', teacher:'Rabia Sultan', school:'GGPS Jorian', emis:'37330565', date:'2026-05-13', grade:'Class 4', subject:'English', markaz:'Bagga Sheikhan', status:'submitted',
       note:'Joint visit with the AEO — school the AEO can reach only every 6 weeks due to distance, so this was mainly a coverage-gap visit.'},
-    {id:'v5', school:'GGPS Banda Nagial', emis:'37330709', date:'2026-05-13', grade:'Class 2', subject:'English', markaz:'Bagga Sheikhan', status:'submitted',
+    {id:'v5', teacher:'Nighat Parveen', school:'GGPS Banda Nagial', emis:'37330709', date:'2026-05-13', grade:'Class 2', subject:'English', markaz:'Bagga Sheikhan', status:'submitted',
       note:'Alphabet recognition activity, high engagement. Connectivity dropped mid-session — third report of this from this cluster this term.'},
-    {id:'v6', school:'GGPS No. 2 Bagga Sheikhan', emis:'37330704', date:'2026-05-11', grade:'Class 2', subject:'English', markaz:'Bagga Sheikhan', status:'submitted',
+    {id:'v6', teacher:'Saima Kanwal', school:'GGPS No. 2 Bagga Sheikhan', emis:'37330704', date:'2026-05-11', grade:'Class 2', subject:'English', markaz:'Bagga Sheikhan', status:'submitted',
       note:'Two classes observed back-to-back. Teacher mentioned the lesson-plan PDF export cuts off multi-grade plans — logged for product.'},
-    {id:'v7', school:'GGPS No. 2 Bagga Sheikhan', emis:'37330704', date:'2026-05-11', grade:'Class 3', subject:'Maths', markaz:'Bagga Sheikhan', status:'submitted',
+    {id:'v7', teacher:'Tahmina Aslam', school:'GGPS No. 2 Bagga Sheikhan', emis:'37330704', date:'2026-05-11', grade:'Class 3', subject:'Maths', markaz:'Bagga Sheikhan', status:'submitted',
       note:'Word problems, good use of real-world examples. Same connectivity complaint as the earlier class today.'},
-    {id:'v8', school:'GES Khasalaa Kallan', emis:'37330350', date:'2026-05-07', grade:'Class 2', subject:'English', markaz:'Adyala', status:'submitted',
+    {id:'v8', teacher:'Rubina Shaheen', school:'GES Khasalaa Kallan', emis:'37330350', date:'2026-05-07', grade:'Class 2', subject:'English', markaz:'Adyala', status:'submitted',
       note:'Co-observed alongside Sadia (the Adyala AEO) — calibration visit to compare HOTS scoring between an AEO and a TM on the same lesson.'},
-    {id:'v9', school:'GPS Bodial', emis:'37330309', date:'2026-05-07', grade:'Class 4', subject:'English', markaz:'Adyala', status:'submitted',
+    {id:'v9', teacher:'Farah Naz', school:'GPS Bodial', emis:'37330309', date:'2026-05-07', grade:'Class 4', subject:'English', markaz:'Adyala', status:'submitted',
       note:'Strong open-ended questioning throughout. No product issues raised this visit.'},
-    {id:'v10', school:'GGES Arazi Sohal', emis:'37330172', date:'2026-04-30', grade:'Class 4', subject:'Maths', markaz:'Sihal Female', status:'submitted',
+    {id:'v10', teacher:'Shabana Ilyas', school:'GGES Arazi Sohal', emis:'37330172', date:'2026-04-30', grade:'Class 4', subject:'Maths', markaz:'Sihal Female', status:'submitted',
       note:'Teacher asked whether Rumi can send a reminder notification before a lesson, not just after — logged as a feature request.'},
-    {id:'v11', school:'GGPS Dhadar Najjar', emis:'37330532', date:'2026-04-30', grade:'Class 5', subject:'', markaz:'Sihal Female', status:'submitted',
+    {id:'v11', teacher:'Nasira Khatoon', school:'GGPS Dhadar Najjar', emis:'37330532', date:'2026-04-30', grade:'Class 5', subject:'', markaz:'Sihal Female', status:'submitted',
       note:'Subject not logged for this session — a data-entry gap on the visit form worth flagging to product, not a teaching issue.'},
-    {id:'v12', school:'GMPS Mohra Bhatan', emis:'37330281', date:'2026-04-30', grade:'Class 2', subject:'English', markaz:'Sihal Female', status:'submitted',
+    {id:'v12', teacher:'Iram Fatima', school:'GMPS Mohra Bhatan', emis:'37330281', date:'2026-04-30', grade:'Class 2', subject:'English', markaz:'Sihal Female', status:'submitted',
       note:'First visit to this school this term — teacher had not received any Digital Coach training yet.'},
   ];
 
@@ -1363,7 +1367,7 @@
     else if(state.screen==='tm-coobs'){ parts = [{label:'My Observations'}]; }
     else if(state.screen==='tm-observation-detail'){
       var tmv = TM_VISITS.find(function(x){ return x.id===state.tmObservationId; });
-      parts = [{label:'My Observations', screen:'tm-coobs'}, {label: tmv ? tmv.school : 'Observation'}];
+      parts = [{label:'My Observations', screen:'tm-coobs'}, {label: tmv ? tmv.teacher : 'Observation'}];
     }
     else if(state.screen==='deo-district'){ parts = [{label:'My District'}]; }
     else if(state.screen==='deo-markaz-detail'){
@@ -1443,12 +1447,17 @@
           +   '<p>Adyala markaz, at a glance — what actually needs your time this week, and where a little support would help most.</p>'
           + '</div></div>';
 
+    // When reached via drill-through (TM/DEO/Minister), carry the "Adyala"
+    // markaz filter along to Schools/Teachers, so those screens land already
+    // scoped to the AEO you just came from instead of resetting to "All
+    // markaz" and silently showing the same data with a mismatched filter.
+    var markazPreset = state.role==='aeo' ? '' : ' data-preset-markaz="Adyala"';
     html += '<div class="stats k4">'
-      + '<div class="stat-card accent-primary clickable" data-goto="schools"><div class="label">Schools</div><div class="value">'+stats.schools+'</div><div class="sub">in your roster</div></div>'
-      + '<div class="stat-card accent-primary clickable" data-goto="teachers"><div class="label">Teachers</div><div class="value">'+stats.teachers+'</div><div class="sub">across all schools</div></div>'
-      + '<div class="stat-card accent-primary clickable" data-goto="teachers"><div class="label">On Rumi</div><div class="value">'+stats.teachersOnRumi+'/'+stats.teachers+'</div><div class="sub">teachers active on Rumi</div></div>'
-      + '<div class="stat-card accent-primary clickable" data-goto="schools"><div class="label">Lesson plans</div><div class="value">'+stats.lpTotal+' '+trendHtml(stats.lpTrend)+'</div><div class="sub">generated this month, markaz-wide</div></div>'
-      + '<div class="stat-card accent-primary clickable" data-goto="schools"><div class="label">Digital Coach</div><div class="value">'+stats.dcAvg+'% '+trendHtml(stats.dcTrend)+'</div><div class="sub">avg. engagement across schools</div></div>'
+      + '<div class="stat-card accent-primary clickable" data-goto="schools"'+markazPreset+'><div class="label">Schools</div><div class="value">'+stats.schools+'</div><div class="sub">in your roster</div></div>'
+      + '<div class="stat-card accent-primary clickable" data-goto="teachers"'+markazPreset+'><div class="label">Teachers</div><div class="value">'+stats.teachers+'</div><div class="sub">across all schools</div></div>'
+      + '<div class="stat-card accent-primary clickable" data-goto="teachers"'+markazPreset+'><div class="label">On Rumi</div><div class="value">'+stats.teachersOnRumi+'/'+stats.teachers+'</div><div class="sub">teachers active on Rumi</div></div>'
+      + '<div class="stat-card accent-primary clickable" data-goto="schools"'+markazPreset+'><div class="label">Lesson plans</div><div class="value">'+stats.lpTotal+' '+trendHtml(stats.lpTrend)+'</div><div class="sub">generated this month, markaz-wide</div></div>'
+      + '<div class="stat-card accent-primary clickable" data-goto="schools"'+markazPreset+'><div class="label">Digital Coach</div><div class="value">'+stats.dcAvg+'% '+trendHtml(stats.dcTrend)+'</div><div class="sub">avg. engagement across schools</div></div>'
       + '<div class="stat-card accent-primary clickable" data-goto="my-forms"><div class="label">HOTS observations</div><div class="value">'+stats.observedThisMonth+'</div><div class="sub">submitted this term</div></div>'
       + '<div class="stat-card accent-warning clickable" data-goto="my-forms"><div class="label">Debriefs pending</div><div class="value">'+stats.debriefsPending+'</div><div class="sub">still to hold with teachers</div></div>'
       + '<div class="stat-card accent-warning clickable" data-goto-filtered-teachers="due"><div class="label">Due for a visit</div><div class="value">'+stats.due+'</div><div class="sub">needs support, quiet 30+ days, or not yet on Rumi</div></div>'
@@ -1851,11 +1860,12 @@
       + '</div>';
 
     html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr>'
-      + '<th>School</th><th>Markaz</th><th>Date</th><th>Status</th><th></th>'
+      + '<th>Teacher</th><th>School</th><th>Markaz</th><th>Date</th><th>Status</th><th></th>'
       + '</tr></thead><tbody>';
     visits.forEach(function(v){
       html += '<tr data-goto-tm-observation="'+esc(v.id)+'">'
-        + '<td><div class="row-name">'+esc(v.school)+'</div></td>'
+        + '<td><div class="row-name">'+esc(v.teacher)+'</div></td>'
+        + '<td>'+esc(v.school)+'</td>'
         + '<td>'+esc(v.markaz)+'</td>'
         + '<td>'+parseIsoDaysAgo(v.date)+' days ago</td>'
         + '<td><span class="debrief-pill done">Submitted</span></td>'
@@ -1871,7 +1881,7 @@
     var v = TM_VISITS.find(function(x){ return x.id===state.tmObservationId; }) || TM_VISITS[0];
     var html = '';
     html += crumbs();
-    html += '<div class="page-head"><div><h1>'+esc(v.school)+'</h1><p>'+esc(v.markaz)+' · EMIS '+esc(v.emis)+' · visited '+parseIsoDaysAgo(v.date)+' days ago</p></div>'
+    html += '<div class="page-head"><div><h1>'+esc(v.teacher)+'</h1><p>'+esc(v.school)+' · '+esc(v.markaz)+' · EMIS '+esc(v.emis)+' · visited '+parseIsoDaysAgo(v.date)+' days ago</p></div>'
       + '<div class="actions"><button class="btn btn-ghost" data-goto="tm-coobs">&larr; All observations</button></div></div>';
 
     html += '<div class="stats">'
@@ -2572,6 +2582,7 @@
     var gotoBtn = e.target.closest('[data-goto]');
     if(gotoBtn){
       state.screen = gotoBtn.dataset.goto;
+      if(gotoBtn.dataset.presetMarkaz) state.markazFilter = gotoBtn.dataset.presetMarkaz;
       render(); return;
     }
     var schoolRow = e.target.closest('[data-goto-school]');
