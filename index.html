@@ -395,9 +395,26 @@
   }
   .name-cell{ display:flex; align-items:center; gap:12px; }
 
+  /* Horizontally-scrolling strip instead of flex-wrap — a wrapped chip row
+     turns into 2-3 stacked lines on mobile ("cluttered"); a single swipeable
+     row stays one line at any width. Search lives outside this row (see
+     .filter-search-row) so it's always visible, not scrolled off with chips. */
   .filter-row{
-    display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap;
+    display:flex; align-items:center; gap:10px; margin-bottom:16px;
+    flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
   }
+  .filter-row::-webkit-scrollbar{ display:none; }
+  .filter-row .chip{ flex:0 0 auto; }
+  .filter-search-row{ display:flex; margin-bottom:16px; }
+  .filter-search-row .search{ flex:1; max-width:none; }
+  .clear-filters-chip{
+    flex:0 0 auto; appearance:none; cursor:pointer; border:1px dashed var(--border);
+    background:transparent; color:var(--muted-fg); font-size:13px; font-weight:600;
+    padding:7px 14px; border-radius:999px; white-space:nowrap;
+    display:inline-flex; align-items:center; gap:4px;
+  }
+  .clear-filters-chip:hover{ background:var(--muted); color:var(--fg); }
   .chip{
     appearance:none; cursor:pointer; border:1px solid var(--border); background:var(--bg);
     color:var(--muted-fg); font-size:13px; font-weight:600; padding:7px 14px; border-radius:999px;
@@ -1985,13 +2002,15 @@
       return;
     }
 
+    var filtersActive = state.teacherFilter!=='all' || !!state.teacherSearch || ((state.role==='deo'||state.role==='tm') && state.markazFilter!=='all');
     html += '<div class="filter-row">'
       + '<button class="chip'+(state.teacherFilter==='all'?' active':'')+'" data-filter="all">All <span class="n">'+all.length+'</span></button>'
       + '<button class="chip'+(state.teacherFilter==='needs-support'?' active':'')+'" data-filter="needs-support">Needs support <span class="n">'+flaggedTotal+'</span></button>'
       + '<button class="chip'+(state.teacherFilter==='stale'?' active':'')+'" data-filter="stale">30+ days quiet <span class="n">'+staleTotal+'</span></button>'
       + '<button class="chip'+(state.teacherFilter==='not-on-rumi'?' active':'')+'" data-filter="not-on-rumi">Not yet on Rumi <span class="n">'+notOnRumiTotal+'</span></button>'
-      + '<input class="search" type="text" placeholder="Search teacher or school…" id="teacherSearch" value="'+esc(state.teacherSearch)+'">'
+      + (filtersActive ? '<button class="clear-filters-chip" data-clear-teacher-filters="1">&times; Clear filters</button>' : '')
       + '</div>';
+    html += '<div class="filter-search-row"><input class="search" type="text" placeholder="Search teacher or school…" id="teacherSearch" value="'+esc(state.teacherSearch)+'"></div>';
 
     html += '<div class="card"><div class="table-scroll"><table class="roster"><thead><tr>'
       + '<th>Teacher</th><th>School</th><th>Assignment</th><th>Last DC session</th><th></th>'
@@ -2419,6 +2438,13 @@
     var markazFilterBtn = e.target.closest('[data-markaz-filter]');
     if(markazFilterBtn){
       state.markazFilter = markazFilterBtn.dataset.markazFilter;
+      render(); return;
+    }
+    var clearTeacherFiltersBtn = e.target.closest('[data-clear-teacher-filters]');
+    if(clearTeacherFiltersBtn){
+      state.teacherFilter = 'all';
+      state.teacherSearch = '';
+      state.markazFilter = 'all';
       render(); return;
     }
     var stubBtn = e.target.closest('[data-goto-stub]');
