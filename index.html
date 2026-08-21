@@ -1732,12 +1732,12 @@
       var pill = tmCount>0 ? '<span class="status-pill good"><span class="dot"></span>Visited</span>' : '<span class="status-pill pending"><span class="dot"></span>No visit yet</span>';
       html += '<div class="status-card" data-goto-tm-aeo="'+esc(a.markaz)+'">'
         + '<div><div class="sc-title">'+esc(a.name)+'<span class="sep">&middot;</span><span class="markaz">'+esc(a.markaz)+'</span></div>'
-        + '<div class="sc-sub"><b>'+a.schools+'</b> schools &nbsp;&middot;&nbsp; <b>'+(a.teachers==null?'—':a.teachers)+'</b> teachers &nbsp;&middot;&nbsp; <b>'+activity.conducted+'</b> conducted &nbsp;&middot;&nbsp; <b>'+activity.inProgress+'</b> in progress &nbsp;&middot;&nbsp; <b>'+tmCount+'</b> of your visits</div></div>'
+        + '<div class="sc-sub"><b>'+a.schools+'</b> schools &nbsp;&middot;&nbsp; <b>'+(a.teachers==null?'—':a.teachers)+'</b> teachers &nbsp;&middot;&nbsp; <b>'+activity.conducted+'</b> conducted &nbsp;&middot;&nbsp; <b>'+tmCount+'</b> of your visits</div></div>'
         + pill
         + '</div>';
     });
     html += '</div></div>';
-    html += '<div class="proto-note"><b>Prototype note:</b> "Conducted"/"In progress" are real AEO visit counts from TaleemHub_DB.monitoring_visits (the AEO’s own log — separate from your co-observations). There’s no future-dated "scheduled" concept anywhere in TaleemHub, so "In progress" means draft/unsubmitted, not a calendar booking. RWP Cantt shows 0 for both windows — a real, verified gap, not missing data. Excludes one assigned AEO (Lodhran) entirely — no matching school data anywhere in TaleemHub, almost certainly a data-entry error rather than a real assignment.</div>';
+    html += '<div class="proto-note"><b>Prototype note:</b> "Conducted" is a real AEO visit count from TaleemHub_DB.monitoring_visits (the AEO’s own log — separate from your co-observations). RWP Cantt shows 0 in both windows — a real, verified gap, not missing data. Excludes one assigned AEO (Lodhran) entirely — no matching school data anywhere in TaleemHub, almost certainly a data-entry error rather than a real assignment.</div>';
     root.innerHTML = html;
   }
 
