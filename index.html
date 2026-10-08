@@ -50,6 +50,22 @@
     flex:0 0 28px;
   }
   .navbar .brand .mark svg{ width:18px;height:18px; }
+
+  /* Every chart SVG here sets width="100%" but a literal pixel height
+     attribute -- without this rule the browser doesn't rescale that height
+     to match a shrunk width on a narrow screen, so the chart's aspect
+     ratio breaks and everything renders squished/tiny on mobile instead of
+     proportionally smaller. */
+  svg[viewBox]{ width:100%; height:auto; display:block; }
+
+  /* Dot plot mobile fallback -- list hidden by default (desktop shows the
+     geometric plot), swapped in below the breakpoint where 20+ labeled
+     points genuinely can't fit legibly on a phone screen. */
+  .dotplot-list{ display:none; }
+  @media (max-width:640px){
+    .dotplot-svg-wrap{ display:none; }
+    .dotplot-list{ display:block; }
+  }
   .navbar .brand span{ font-weight:600; font-size:16px; letter-spacing:.1px; }
 
   .navlinks{ display:flex; align-items:center; gap:2px; }
@@ -214,6 +230,7 @@
   }
   .stat-card.accent-primary{ border-left-color:var(--primary); }
   .stat-card.accent-warning{ border-left-color:var(--warning); }
+  .stat-card.accent-success{ border-left-color:var(--success); }
   .stat-card .label{
     font-size:12px; color:var(--muted-fg); font-weight:600; text-transform:uppercase; letter-spacing:.5px;
     margin-bottom:10px;
@@ -221,6 +238,91 @@
   .stat-card .value{ font-size:30px; font-weight:300; font-variant-numeric:tabular-nums; line-height:1; }
   .stat-card .value.tile-metric-row{ display:flex; align-items:center; gap:8px; }
   .stat-card .sub{ font-size:12px; color:var(--muted-fg); margin-top:8px; }
+
+  /* ---------- DEO visual dashboard: rings, band bar, markaz mosaic ---------- */
+  .ring-row{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:20px; }
+  .ring-card{ background:var(--bg); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-soft);
+    padding:16px; display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; }
+  .ring-card .ring-label{ font-size:12px; font-weight:600; color:var(--muted-fg); text-transform:uppercase; letter-spacing:.5px; }
+  .ring-card .ring-sub{ font-size:11px; color:var(--muted-fg); line-height:1.4; margin-top:-4px; }
+  .ring-card .big-num{ font-size:40px; font-weight:300; line-height:88px; height:88px; font-variant-numeric:tabular-nums; color:var(--primary); }
+  @media (max-width:900px){ .ring-row{ grid-template-columns:repeat(2,1fr); } .ring-row .ring-card:last-child{ grid-column:span 2; } }
+  .viz-card{ padding:20px; margin-bottom:20px; }
+  /* .card clips overflow; the markaz hover cards must be able to leave it */
+  .card.viz-card{ overflow:visible; }
+  /* Hover/tap card on each markaz tile */
+  .mosaic .tile{ position:relative; cursor:pointer; outline:none; }
+  .mosaic .tile:hover, .mosaic .tile:focus{ box-shadow:0 0 0 2px var(--primary-light); }
+  .mosaic .tile .tip{ display:none; position:absolute; top:calc(100% + 8px); left:0; z-index:15; width:220px;
+    background:var(--bg); color:var(--fg); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-medium);
+    padding:14px; text-align:left; cursor:default; }
+  .mosaic .tile.tip-right .tip{ left:auto; right:0; }
+  .mosaic .tile.tip-up .tip{ top:auto; bottom:calc(100% + 8px); }
+  .mosaic .tile:hover .tip, .mosaic .tile:focus .tip, .mosaic .tile:focus-within .tip{ display:block; }
+  .tip .tip-title{ font-size:13px; font-weight:700; margin-bottom:10px; }
+  .tip .tip-row{ display:flex; justify-content:space-between; gap:10px; font-size:12.5px; padding:3px 0; }
+  .tip .tip-row span{ color:var(--muted-fg); }
+  .tip .tip-row b{ font-variant-numeric:tabular-nums; }
+  .tip .tip-top{ display:flex; gap:8px; align-items:flex-start; background:#FFF8E1; border-radius:8px; padding:8px 10px; margin-bottom:10px; }
+  .tip .tip-top .star{ color:#F5B400; font-size:18px; line-height:1.1; flex:0 0 auto; }
+  .tip .tip-top .lbl{ font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#8A6A00; }
+  .tip .tip-top .nm{ font-size:12.5px; font-weight:700; line-height:1.35; }
+  .tip .tip-top .sub{ font-size:11.5px; color:var(--muted-fg); margin-top:1px; }
+  .tip .tip-spark{ margin-top:10px; padding-top:10px; border-top:1px solid var(--border); }
+
+  /* Top AEOs leaderboard */
+  .lb-sub{ font-size:12px; color:var(--muted-fg); margin:-6px 0 14px; }
+  .lb-list{ display:flex; flex-direction:column; gap:4px; }
+  .lb-row{ position:relative; display:grid; grid-template-columns:32px 36px minmax(180px,1.2fr) 2fr 44px; gap:12px; align-items:center;
+    padding:8px 10px; border-radius:10px; cursor:pointer; outline:none; }
+  .lb-row:hover, .lb-row:focus{ background:var(--muted); }
+  .lb-medal{ width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; }
+  .lb-medal.r1{ background:#F5B400; } .lb-medal.r2{ background:#A8B0BF; } .lb-medal.r3{ background:#C98A4B; }
+  .lb-medal.rn{ background:var(--muted); color:var(--muted-fg); border:1px solid var(--border); }
+  .lb-avatar{ width:34px; height:34px; border-radius:50%; background:color-mix(in srgb, var(--primary) 10%, var(--bg)); color:var(--primary);
+    display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
+  .lb-who{ min-width:0; }
+  .lb-who .nm{ font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lb-who .mk{ font-size:12px; color:var(--muted-fg); }
+  .lb-bar{ height:14px; background:var(--muted); border-radius:7px; overflow:hidden; }
+  .lb-bar span{ display:block; height:100%; background:#2440A0; border-radius:7px; }
+  .lb-row.top1 .lb-bar span{ background:#0E1F4C; }
+  .lb-count{ font-size:20px; font-weight:300; text-align:right; font-variant-numeric:tabular-nums; }
+  .lb-row .tip{ display:none; position:absolute; top:calc(100% + 4px); left:88px; z-index:15; width:230px;
+    background:var(--bg); color:var(--fg); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-medium); padding:14px; cursor:default; }
+  .lb-row.tip-up .tip{ top:auto; bottom:calc(100% + 4px); }
+  .lb-row:hover .tip, .lb-row:focus .tip{ display:block; }
+  @media (max-width:640px){
+    .lb-row{ grid-template-columns:32px 36px 1fr 40px; grid-template-areas:"m a w c" ". . b b"; row-gap:6px; }
+    .lb-medal{ grid-area:m; } .lb-avatar{ grid-area:a; } .lb-who{ grid-area:w; } .lb-bar{ grid-area:b; } .lb-count{ grid-area:c; }
+    .lb-row .tip{ left:10px; }
+  }
+  .tip .tip-spark .sc-label{ margin-bottom:4px; }
+  .viz-card .viz-title{ font-size:15px; font-weight:600; margin-bottom:12px; }
+  .viz-legend{ display:flex; flex-wrap:wrap; gap:6px 16px; font-size:12px; color:var(--muted-fg); margin:10px 0 14px; }
+  .viz-legend i{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:6px; vertical-align:-1px; }
+  .band-bar{ display:flex; height:34px; border-radius:8px; overflow:hidden; gap:3px; }
+  .band-bar span{ display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; font-variant-numeric:tabular-nums; }
+  .mosaic{ display:grid; grid-template-columns:repeat(auto-fill, minmax(132px,1fr)); gap:8px; }
+  .mosaic .tile{ border-radius:10px; padding:10px 12px; min-height:74px; display:flex; flex-direction:column; justify-content:space-between; gap:6px; }
+  .mosaic .tile .t-name{ font-size:12px; font-weight:600; line-height:1.3; }
+  .mosaic .tile .t-val{ display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:22px; font-weight:300; font-variant-numeric:tabular-nums; line-height:1; }
+  .mosaic .tile .t-arrow{ font-size:13px; font-weight:700; }
+  .band-low{ background:#E3E8F7; color:#0E1F4C; }
+  .band-mid{ background:#8FA1E0; color:#0E1F4C; }
+  .band-high{ background:#2440A0; color:#FFFFFF; }
+  @media (max-width:480px){ .mosaic{ grid-template-columns:repeat(2,1fr); } }
+  .fn-sep{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--muted-fg); margin:16px 0 6px; }
+  .fn-sep:first-of-type{ margin-top:0; }
+  .fn-stage{ display:grid; grid-template-columns:170px 1fr; gap:12px; align-items:center; padding:4px 0; }
+  .fn-name{ font-size:13px; font-weight:600; }
+  .fn-track{ position:relative; height:30px; background:var(--muted); border-radius:6px; overflow:hidden; }
+  .fn-fill{ position:absolute; top:0; bottom:0; left:0; border-radius:6px; display:flex; align-items:center; padding-left:10px; color:#fff; font-weight:600; font-size:13px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .fn-pct{ position:absolute; top:50%; transform:translateY(-50%); font-size:12px; color:var(--muted-fg); padding-left:8px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .fn-drop{ display:grid; grid-template-columns:170px 1fr; gap:12px; }
+  .fn-drop span{ grid-column:2; margin-left:14px; padding-left:12px; border-left:2px dashed var(--border); font-size:11.5px; color:var(--muted-fg); line-height:20px; }
+  .fn-drop b{ color:var(--fg); }
+  @media (max-width:640px){ .fn-stage, .fn-drop{ grid-template-columns:1fr; gap:4px; } .fn-drop span{ grid-column:1; } }
 
   /* ---------- sections / cards ---------- */
   .section{ margin-bottom:36px; }
@@ -681,8 +783,6 @@
       <button class="nav-btn" data-role="tm" data-nav="teachers">Teachers</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-coobs">My Observations</button>
       <button class="nav-btn" data-role="deo" data-nav="deo-district">My District</button>
-      <button class="nav-btn" data-role="deo" data-nav="schools">Schools</button>
-      <button class="nav-btn" data-role="deo" data-nav="teachers">Teachers</button>
       <button class="nav-btn" data-role="minister" data-nav="minister-overview">Punjab Overview</button>
     </div>
     <div class="spacer"></div>
@@ -725,8 +825,6 @@
       <button class="nav-btn" data-role="tm" data-nav="teachers"><span class="bn-icon">&#128101;</span>Teachers</button>
       <button class="nav-btn" data-role="tm" data-nav="tm-coobs"><span class="bn-icon">&#129309;</span>My Obs.</button>
       <button class="nav-btn" data-role="deo" data-nav="deo-district"><span class="bn-icon">&#127979;</span>District</button>
-      <button class="nav-btn" data-role="deo" data-nav="schools"><span class="bn-icon">&#127979;</span>Schools</button>
-      <button class="nav-btn" data-role="deo" data-nav="teachers"><span class="bn-icon">&#128101;</span>Teachers</button>
       <button class="nav-btn" data-role="minister" data-nav="minister-overview"><span class="bn-icon">&#127757;</span>Punjab</button>
     </div>
   </nav>
@@ -985,34 +1083,84 @@
   var DEO_DISTRICT = {
     name:'Rawalpindi District',
     aeos:[
-      {id:'aeo-adyala', name:'Sadia Iqbal', markaz:'Adyala', drillable:true,
+      {id:'aeo-adyala', name:'AEO Adyala (F)', markaz:'Adyala', drillable:true,
         schools:SCHOOLS.length, teachers:SCHOOLS.reduce(function(a,s){return a+s.teacherCount;},0),
         dcAvg:null, lpTotal:null, due:null, visitsThisTerm:null, lastActivityDays:null, dcTrend:null, connectivityIssueSchools:null},
-      {id:'aeo-kahuta', name:'Imran Sethi', markaz:'Kahuta', drillable:false,
+      {id:'aeo-adyalamale', name:'AEO Adyala (M)', markaz:'Adyala (Male)', drillable:false,
+        schools:7, teachers:31, dcAvg:64, lpTotal:29, due:5,
+        visitsThisTerm:9, lastActivityDays:17, dcTrend:[61,63,63,64], connectivityIssueSchools:1},
+      {id:'aeo-pirwadhai', name:'AEO Pir Wadhai (F)', markaz:'Pir Wadhai (Female)', drillable:false,
         schools:6, teachers:38, dcAvg:71, lpTotal:44, due:9,
         visitsThisTerm:7, lastActivityDays:12, dcTrend:[74,72,71,71], connectivityIssueSchools:2},
-      {id:'aeo-gujarkhan', name:'Farah Bukhari', markaz:'Gujar Khan', drillable:false,
+      {id:'aeo-sadarberoni', name:'AEO Sadar Beroni (F)', markaz:'Sadar Beroni (Female)', drillable:false,
         schools:8, teachers:44, dcAvg:65, lpTotal:57, due:14,
         visitsThisTerm:6, lastActivityDays:26, dcTrend:[70,68,66,65], connectivityIssueSchools:3},
-      // Real school/teacher shell (school names, EMIS, teacher counts) verified
-      // live against TaleemHub_DB.users (role='AEO') + schools, per D2 in
-      // DEO_PORTAL_EXECUTION_PLAN.md. Performance numbers (dcAvg, visits, trend,
-      // connectivity) are still illustrative — same "real structure, fictional
-      // performance" pattern as Adyala.
-      {id:'aeo-rwpcantt', name:'Bilal Anwar', markaz:'Rawalpindi Cantt', drillable:false,
+      // Real AEO account from RUMI_DB (role='aeo', organization='sed_punjab').
+      // Performance numbers (schools, teachers, dcAvg, visits, trend,
+      // connectivity) are still illustrative -- same "real identity, fictional
+      // performance" pattern as Adyala, TaleemHub is no longer a source at all.
+      {id:'aeo-rwpcantt', name:'AEO RWP Cantt (M)', markaz:'RWP Cantt (Male)', drillable:false,
         schools:11, teachers:53, dcAvg:69, lpTotal:52, due:11,
         visitsThisTerm:14, lastActivityDays:15, dcTrend:[71,70,69,69], connectivityIssueSchools:1},
-      {id:'aeo-bassali', name:'Nasreen Akhtar', markaz:'Bassali', drillable:false,
+      {id:'aeo-bassali', name:'AEO Bassali (F)', markaz:'Bassali (Female)', drillable:false,
         schools:13, teachers:52, dcAvg:73, lpTotal:60, due:10,
         visitsThisTerm:16, lastActivityDays:9, dcTrend:[70,71,72,73], connectivityIssueSchools:2},
-      {id:'aeo-chakbelikhan', name:'Waseem Tariq', markaz:'Chak Beli Khan', drillable:false,
+      {id:'aeo-chakbelikhan', name:'AEO Chak Beli Khan (F)', markaz:'Chak Beli Khan (Female)', drillable:false,
         schools:8, teachers:20, dcAvg:60, lpTotal:22, due:6,
         visitsThisTerm:10, lastActivityDays:20, dcTrend:[66,64,62,60], connectivityIssueSchools:2},
-      // Shakrial has real school/teacher data but no matching role='AEO' row in
-      // TaleemHub_DB — flagged rather than fabricating a name, per D2.
-      {id:'aeo-shakrial', name:'(AEO unassigned)', aeoAssignmentUnclear:true, markaz:'Shakrial', drillable:false,
+      // Real AEO account from RUMI_DB (role='aeo', organization='sed_punjab').
+      {id:'aeo-chakri', name:'AEO Chakri (F)', markaz:'Chakri (Female)', drillable:false,
         schools:8, teachers:29, dcAvg:58, lpTotal:24, due:7,
         visitsThisTerm:7, lastActivityDays:31, dcTrend:[64,62,60,58], connectivityIssueSchools:1},
+      // 15 more real AEOs from RUMI_DB (role='aeo', aeo_region='pindi',
+      // non-test) -- fuller sample per the 23-real-markaz count found live.
+      // Performance numbers illustrative, same rule as every stub above.
+      {id:'aeo-bassalimale', name:'AEO Bassali (M)', markaz:'Bassali (Male)', drillable:false,
+        schools:9, teachers:36, dcAvg:80, lpTotal:41, due:6,
+        visitsThisTerm:10, lastActivityDays:14, dcTrend:[84,83,81,80], connectivityIssueSchools:2},
+      {id:'aeo-chaklala', name:'AEO Chaklala (M)', markaz:'Chaklala (Male)', drillable:false,
+        schools:7, teachers:21, dcAvg:81, lpTotal:25, due:5,
+        visitsThisTerm:5, lastActivityDays:24, dcTrend:[82,82,81,81], connectivityIssueSchools:2},
+      {id:'aeo-chakrimale', name:'AEO Chakri (M)', markaz:'Chakri (Male)', drillable:false,
+        schools:3, teachers:12, dcAvg:79, lpTotal:8, due:3,
+        visitsThisTerm:2, lastActivityDays:14, dcTrend:[76,77,78,79], connectivityIssueSchools:0},
+      {id:'aeo-chountrafemale', name:'AEO Chountra (F)', markaz:'Chountra (Female)', drillable:false,
+        schools:10, teachers:50, dcAvg:49, lpTotal:37, due:12,
+        visitsThisTerm:11, lastActivityDays:36, dcTrend:[48,48,49,49], connectivityIssueSchools:1},
+      {id:'aeo-chountramale', name:'AEO Chountra (M)', markaz:'Chountra (Male)', drillable:false,
+        schools:3, teachers:9, dcAvg:69, lpTotal:10, due:2,
+        visitsThisTerm:4, lastActivityDays:12, dcTrend:[71,70,70,69], connectivityIssueSchools:1},
+      {id:'aeo-jathahathialfemale', name:'AEO Jatha Hathial (F)', markaz:'Jatha Hathial (Female)', drillable:false,
+        schools:11, teachers:55, dcAvg:55, lpTotal:46, due:8,
+        visitsThisTerm:6, lastActivityDays:30, dcTrend:[57,56,56,55], connectivityIssueSchools:2},
+      {id:'aeo-jathahathialmale', name:'AEO Jatha Hathial (M)', markaz:'Jatha Hathial (Male)', drillable:false,
+        schools:12, teachers:36, dcAvg:83, lpTotal:34, due:15,
+        visitsThisTerm:8, lastActivityDays:8, dcTrend:[82,82,83,83], connectivityIssueSchools:0},
+      {id:'aeo-kolianhameed', name:'AEO Kolian Hameed (F)', markaz:'Kolian Hameed (Female)', drillable:false,
+        schools:7, teachers:35, dcAvg:82, lpTotal:23, due:8,
+        visitsThisTerm:11, lastActivityDays:15, dcTrend:[79,80,81,82], connectivityIssueSchools:2},
+      {id:'aeo-lodhran', name:'AEO Lodhran (F)', markaz:'Lodhran (Female)', drillable:false,
+        schools:8, teachers:48, dcAvg:52, lpTotal:67, due:8,
+        visitsThisTerm:13, lastActivityDays:21, dcTrend:[50,51,51,52], connectivityIssueSchools:2},
+      {id:'aeo-pirwadhaimale', name:'AEO Pir Wadhai (M)', markaz:'Pir Wadhai (Male)', drillable:false,
+        schools:8, teachers:32, dcAvg:75, lpTotal:27, due:7,
+        visitsThisTerm:12, lastActivityDays:31, dcTrend:[79,78,76,75], connectivityIssueSchools:3},
+      {id:'aeo-raikamaira', name:'AEO Raika Maira (F)', markaz:'Raika Maira (Female)', drillable:false,
+        schools:7, teachers:35, dcAvg:59, lpTotal:24, due:7,
+        visitsThisTerm:6, lastActivityDays:35, dcTrend:[55,56,58,59], connectivityIssueSchools:3},
+      {id:'aeo-rwpcanttfemale', name:'AEO RWP Cantt (F)', markaz:'RWP Cantt (Female)', drillable:false,
+        schools:7, teachers:42, dcAvg:52, lpTotal:58, due:4,
+        visitsThisTerm:9, lastActivityDays:31, dcTrend:[51,51,52,52], connectivityIssueSchools:1},
+      {id:'aeo-shakrial', name:'AEO Shakrial (M)', markaz:'Shakrial (Male)', drillable:false,
+        schools:4, teachers:20, dcAvg:60, lpTotal:15, due:4,
+        visitsThisTerm:6, lastActivityDays:17, dcTrend:[59,59,60,60], connectivityIssueSchools:2},
+      {id:'aeo-sihal', name:'AEO Sihal (F)', markaz:'Sihal (Female)', drillable:false,
+        schools:4, teachers:24, dcAvg:62, lpTotal:15, due:4,
+        visitsThisTerm:5, lastActivityDays:39, dcTrend:[59,60,61,62], connectivityIssueSchools:3},
+      {id:'aeo-baggasheikhan', name:'AEO Bagga Sheikhan (F)', markaz:'Bagga Sheikhan (Female)', drillable:false,
+        schools:9, teachers:36, dcAvg:54, lpTotal:23, due:10,
+        visitsThisTerm:12, lastActivityDays:15, dcTrend:[52,53,53,54], connectivityIssueSchools:1},
+
     ]
   };
   var PUNJAB_REGIONS = [
@@ -1147,6 +1295,19 @@
   };
 
   function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  // Real trailing month names ending at the current month -- used wherever a
+  // trend chart needs month labels instead of relative "N months ago" text.
+  function monthNamesTrailing(n){
+    var names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var now = new Date();
+    var out = [];
+    for(var i=n-1; i>=0; i--){
+      var d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      out.push(names[d.getMonth()]);
+    }
+    return out;
+  }
   function initials(name){ var p = name.split(' '); return ((p[0]||'')[0]||'') + ((p[1]||'')[0]||''); }
   function needsSupport(v){ return v < NEEDS_SUPPORT_THRESHOLD; }
   function isNotOnRumi(t){ return t.status === 'not_on_rumi'; }
@@ -1209,6 +1370,304 @@
       + '<path d="'+line+'" fill="none" stroke="'+col+'" stroke-width="'+strokeW+'" stroke-linecap="round" stroke-linejoin="round"/>'
       + '<circle cx="'+lastX+'" cy="'+lastY+'" r="'+dotR+'" fill="'+col+'"/>'
       + '</svg>';
+  }
+
+  // Sorted horizontal bar chart — one hue, magnitude only, identity via the
+  // label. An optional threshold line does the "who's below the bar" job
+  // instead of coloring bars pass/fail (that's what the status pill on the
+  // roster card is for — this chart shouldn't repeat the same signal in a
+  // second encoding). Native <title> gives a hover tooltip with no JS.
+  // Red -> amber -> green, two-stop piecewise interpolation in RGB space.
+  // Used wherever a bar's own value should carry a "how are we doing" read
+  // (a real magnitude-to-status mapping, not decoration) -- coverage against
+  // a real target is exactly that case.
+  function coverageGradientColor(v, lowT, highT){
+    lowT = lowT != null ? lowT : 60; highT = highT != null ? highT : 85;
+    function lerp(a,b,t){ return Math.round(a + (b-a)*t); }
+    function mix(c1,c2,t){ return 'rgb('+lerp(c1[0],c2[0],t)+','+lerp(c1[1],c2[1],t)+','+lerp(c1[2],c2[2],t)+')'; }
+    var red=[220,38,38], amber=[245,158,11], green=[34,197,94];
+    if(v <= lowT) return mix(red, amber, Math.max(0, v/lowT));
+    if(v >= highT) return 'rgb('+green[0]+','+green[1]+','+green[2]+')';
+    var t = (v - lowT) / (highT - lowT);
+    return mix(amber, green, t);
+  }
+
+  function svgBarChart(items, opts){
+    opts = opts || {};
+    var w = opts.width || 560, rowH = opts.rowH || 30, labelW = opts.labelW || 130,
+        max = opts.max || 100, color = opts.color || '#0E1F4C', threshold = opts.threshold;
+    var gradient = opts.gradient; // true -> color each bar by its own value
+    var sorted = items.slice().sort(function(a,b){ return a.value - b.value; });
+    var chartW = w - labelW - 44;
+    var h = sorted.length * rowH + 8;
+    var xs = function(v){ return labelW + (chartW * Math.min(v, max) / max); };
+    var svg = '<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+esc(opts.ariaLabel||'Bar chart')+'">';
+    if(threshold != null){
+      var tx = xs(threshold).toFixed(1);
+      svg += '<line x1="'+tx+'" y1="0" x2="'+tx+'" y2="'+(h-4)+'" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="3,3"/>';
+    }
+    sorted.forEach(function(it, i){
+      var y = i*rowH + 6;
+      var barW = Math.max(2, xs(it.value) - labelW);
+      var barColor = gradient ? coverageGradientColor(it.value, opts.gradientLow, opts.gradientHigh) : color;
+      svg += '<g>'
+        + '<title>'+esc(it.label)+': '+it.value+(opts.suffix||'')+'</title>'
+        + '<text x="0" y="'+(y+14)+'" font-size="12" fill="#6B7280">'+esc(it.label)+'</text>'
+        + '<rect x="'+labelW+'" y="'+y+'" width="'+barW.toFixed(1)+'" height="16" rx="3" fill="'+barColor+'"/>'
+        + '<text x="'+(labelW+barW+8)+'" y="'+(y+13)+'" font-size="12" font-weight="600" fill="#1D1F24">'+it.value+(opts.suffix||'')+'</text>'
+        + '</g>';
+    });
+    svg += '</svg>';
+    return svg;
+  }
+
+  // Full trend chart — the district's single headline change-over-time
+  // series deserves real chart anatomy (axis labels, point markers, a target
+  // reference line), not a bare sparkline stretched full-width. One hue,
+  // status-colored only where a point misses the target (a legitimate
+  // second use of status color: a threshold check, not a repaint of the
+  // whole series by direction).
+  function svgTrendChart(points, opts){
+    opts = opts || {};
+    var w = opts.width || 640, h = opts.height || 200;
+    var padL = 34, padR = 16, padT = 16, padB = 28;
+    var target = opts.target;
+    var vals = points.map(function(p){return p.value;});
+    var min = Math.min.apply(null, vals.concat(target!=null?[target]:[])),
+        max = Math.max.apply(null, vals.concat(target!=null?[target]:[]));
+    var span = max - min || 1;
+    min -= span*0.12; max += span*0.12;
+    var innerW = w - padL - padR, innerH = h - padT - padB;
+    var xs = function(i){ return padL + (points.length===1 ? innerW/2 : innerW * i / (points.length-1)); };
+    var ys = function(v){ return padT + innerH - innerH * (v - min) / (max - min); };
+    var line = points.map(function(p,i){ return (i?'L':'M')+xs(i).toFixed(1)+' '+ys(p.value).toFixed(1); }).join(' ');
+    var area = 'M'+xs(0).toFixed(1)+' '+(padT+innerH)+' '+points.map(function(p,i){ return 'L'+xs(i).toFixed(1)+' '+ys(p.value).toFixed(1); }).join(' ')+' L'+xs(points.length-1).toFixed(1)+' '+(padT+innerH)+' Z';
+    var color = opts.color || '#2440A0';
+    var svg = '<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+esc(opts.ariaLabel||'Trend chart')+'">';
+    svg += '<line x1="'+padL+'" y1="'+(padT+innerH)+'" x2="'+(padL+innerW)+'" y2="'+(padT+innerH)+'" stroke="#E2E4E8" stroke-width="1"/>';
+    if(target != null){
+      var ty = ys(target).toFixed(1);
+      svg += '<line x1="'+padL+'" y1="'+ty+'" x2="'+(padL+innerW)+'" y2="'+ty+'" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="4,4"/>';
+      svg += '<text x="'+(padL+innerW)+'" y="'+(ty-4)+'" font-size="10.5" fill="#6B7280" text-anchor="end">Target '+target+(opts.suffix||'')+'</text>';
+    }
+    svg += '<path d="'+area+'" fill="'+color+'" fill-opacity="0.10" stroke="none"/>';
+    svg += '<path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    points.forEach(function(p,i){
+      var px = xs(i).toFixed(1), py = ys(p.value).toFixed(1);
+      var missed = target != null && p.value < target;
+      var dotColor = missed ? '#F59E0B' : color;
+      svg += '<circle cx="'+px+'" cy="'+py+'" r="4.5" fill="'+dotColor+'"><title>'+esc(p.label)+': '+p.value+(opts.suffix||'')+'</title></circle>';
+      svg += '<text x="'+px+'" y="'+(padT+innerH+18)+'" font-size="10.5" fill="#6B7280" text-anchor="middle">'+esc(p.label)+'</text>';
+      svg += '<text x="'+px+'" y="'+(py-10)+'" font-size="10.5" font-weight="600" fill="#1D1F24" text-anchor="middle">'+p.value+(opts.suffix||'')+'</text>';
+    });
+    svg += '</svg>';
+    return svg;
+  }
+
+  // Two-column split of a long sorted bar chart -- once a list gets long
+  // (20+ markaz), one full-height column wastes horizontal space and forces
+  // a lot of scrolling. Split down the middle: first half (by rank) left,
+  // second half right, same scale and threshold in both so they stay
+  // directly comparable side by side.
+  function svgBarChartTwoCol(items, opts){
+    opts = opts || {};
+    var sorted = items.slice().sort(function(a,b){ return a.value - b.value; });
+    var mid = Math.ceil(sorted.length/2);
+    var left = sorted.slice(0, mid), right = sorted.slice(mid);
+    var colOpts = Object.assign({}, opts, {width: opts.width || 380});
+    return '<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">'
+      + '<div>' + svgBarChart(left, colOpts) + '</div>'
+      + '<div>' + svgBarChart(right, colOpts) + '</div>'
+      + '</div>';
+  }
+
+  // Two-series comparison trend -- this term vs. last term, plus a target
+  // line. Gridlines + y-axis labels, a legend (three identities: this term /
+  // last term / target -- a legend is mandatory once there's more than one
+  // series), and a headline number + delta so the chart's takeaway doesn't
+  // require reading the whole line.
+  // Full-width dot plot -- one dot per markaz on a single continuous axis,
+  // color-banded by tier (below/mid/above threshold), stacked vertically
+  // when two scores are close enough to collide, with a direct label under
+  // each dot (not just a hover tooltip -- at this count, direct labeling is
+  // the right call per the dataviz skill's "selective direct labels" rule).
+  // Color here does a real job (tier, a threshold read), not identity, so
+  // reusing status-family hues is correct, not a second encoding of the
+  // same fact shown elsewhere.
+  function svgDotPlot(items, opts){
+    opts = opts || {};
+    var w = opts.width || 900, min = opts.min != null ? opts.min : 40, max = opts.max != null ? opts.max : 90;
+    var lowT = opts.lowThreshold != null ? opts.lowThreshold : 60;
+    var highT = opts.highThreshold != null ? opts.highThreshold : 75;
+    var suffix = opts.suffix || '%';
+    var padL = 24, padR = 24, dotR = 7, labelGap = 42;
+    var innerW = w - padL - padR;
+    var xs = function(v){ return padL + innerW * (v - min) / (max - min); };
+
+    var avg = items.reduce(function(a,it){return a+it.value;},0) / items.length;
+    var belowCount = items.filter(function(it){return it.value < lowT;}).length;
+    var aboveCount = items.filter(function(it){return it.value > highT;}).length;
+
+    // Selective direct labels -- only the outlier tiers (below/above
+    // threshold) get a name+value label; the on-track middle cluster is
+    // color + hover only. At real scale (20+ markaz), labeling every dot
+    // collides text on top of text; labeling only the tiers that need a
+    // decision keeps the chart readable and still answers "who, exactly".
+    function willLabel(v){ return v < lowT || v > highT; }
+    function estWidth(label, value){
+      var line1 = String(label).length, line2 = (value+suffix).length;
+      return Math.max(line1, line2) * 7.6 + 14;
+    }
+
+    // Stack collisions: sort by value, greedily assign a vertical level.
+    // Two dots only collide if within (the wider of their two footprints) --
+    // an outlier needing a label gets its full label width as its footprint;
+    // an unlabeled dot only needs its own diameter, so the dense middle
+    // cluster still packs tightly instead of inheriting label-sized gaps.
+    var sorted = items.slice().sort(function(a,b){return a.value-b.value;});
+    var placed = [];
+    sorted.forEach(function(it){
+      var label = willLabel(it.value);
+      var x = xs(it.value);
+      var myWidth = label ? estWidth(it.label, it.value) : dotR*2.2;
+      var level = 0;
+      while(placed.some(function(p){
+        if(p.level!==level) return false;
+        var otherWidth = p.label ? estWidth(p.label, p.value) : dotR*2.2;
+        var neededDist = (myWidth + otherWidth) / 2;
+        return Math.abs(p.x-x) < neededDist;
+      })){
+        level++;
+      }
+      placed.push({x:x, level:level, label:it.label, value:it.value, hasLabel:label});
+    });
+    var maxLevel = placed.reduce(function(a,p){return Math.max(a,p.level);}, 0);
+    // axisY (the baseline y-position) is computed AFTER stacking, from the
+    // tallest stack -- not a fixed constant. Growing canvas height alone
+    // doesn't add headroom above y=0; the baseline itself has to move down
+    // by enough to fit every level's dot+label, or a tall stack's top label
+    // renders at a negative y-coordinate, off the canvas entirely.
+    var axisY = (maxLevel+1)*(dotR*2+labelGap+10) + 40;
+    var h = axisY + 30;
+
+    function tierColor(v){
+      if(v < lowT) return '#DC2626';
+      if(v > highT) return '#22C55E';
+      return '#2440A0';
+    }
+
+    var svg = '<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+esc(opts.ariaLabel||'Dot plot')+'">';
+    for(var v=min; v<=max; v+=10){
+      var tx = xs(v).toFixed(1);
+      svg += '<line x1="'+tx+'" y1="20" x2="'+tx+'" y2="'+axisY+'" stroke="#EEEFF3" stroke-width="1"/>';
+      svg += '<text x="'+tx+'" y="'+(axisY+22)+'" font-size="13" fill="#8A8FA3" text-anchor="middle">'+v+suffix+'</text>';
+    }
+    var avgX = xs(avg).toFixed(1);
+    svg += '<line x1="'+avgX+'" y1="10" x2="'+avgX+'" y2="'+axisY+'" stroke="#6B7280" stroke-width="1.5" stroke-dasharray="4,4"/>';
+    svg += '<text x="'+avgX+'" y="10" font-size="13" font-weight="700" fill="#1D1F24" text-anchor="middle">Avg '+Math.round(avg)+suffix+'</text>';
+    svg += '<line x1="'+padL+'" y1="'+axisY+'" x2="'+(padL+innerW)+'" y2="'+axisY+'" stroke="#E2E4E8" stroke-width="1"/>';
+
+    placed.forEach(function(p){
+      var cy = axisY - dotR - p.level*(dotR*2+labelGap+10) - 6;
+      var color = tierColor(p.value);
+      svg += '<g>'
+        + '<title>'+esc(p.label)+': '+p.value+suffix+'</title>'
+        + '<circle cx="'+p.x.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+dotR+'" fill="'+color+'"/>';
+      if(p.hasLabel){
+        svg += '<text x="'+p.x.toFixed(1)+'" y="'+(cy - dotR - 8).toFixed(1)+'" font-size="13" font-weight="700" fill="#1D1F24" text-anchor="middle">'+p.value+'</text>'
+          + '<text x="'+p.x.toFixed(1)+'" y="'+(cy - dotR - 23).toFixed(1)+'" font-size="12" fill="#6B7280" text-anchor="middle">'+esc(p.label)+'</text>';
+      }
+      svg += '</g>';
+    });
+    svg += '</svg>';
+
+    var summaryHtml = '<div style="display:flex; gap:36px; margin:14px 0 6px;">'
+      + '<div><div style="font-size:30px; font-weight:700; color:var(--fg);">'+Math.round(avg)+suffix+'</div><div style="font-size:11px; color:var(--muted-fg); text-transform:uppercase; letter-spacing:.4px;">District average</div></div>'
+      + '<div><div style="font-size:30px; font-weight:700; color:#DC2626;">'+belowCount+'</div><div style="font-size:11px; color:var(--muted-fg); text-transform:uppercase; letter-spacing:.4px;">Markaz below '+lowT+suffix+'</div></div>'
+      + '<div><div style="font-size:30px; font-weight:700; color:#22C55E;">'+aboveCount+'</div><div style="font-size:11px; color:var(--muted-fg); text-transform:uppercase; letter-spacing:.4px;">Markaz above '+highT+suffix+'</div></div>'
+      + '</div>';
+
+    // Mobile fallback: a 900px-wide plot with 20+ labeled points has no
+    // room to shrink into a ~350px screen and stay legible, no matter how
+    // the SVG scales. Below a width breakpoint (CSS-only, no JS), swap the
+    // geometric plot for a plain sorted list -- same data, same tier
+    // colors, but text-based so it never gets smaller than the device's
+    // own font rendering.
+    var listRows = sorted.slice().reverse().map(function(it){
+      var color = tierColor(it.value);
+      return '<div style="display:flex; align-items:center; justify-content:space-between; padding:8px 4px; border-bottom:1px solid var(--border);">'
+        + '<div style="display:flex; align-items:center; gap:8px;"><span style="width:10px; height:10px; border-radius:50%; background:'+color+'; flex:0 0 auto;"></span><span style="font-size:13px; color:var(--fg);">'+esc(it.label)+'</span></div>'
+        + '<span style="font-size:13px; font-weight:700; color:var(--fg);">'+it.value+suffix+'</span>'
+        + '</div>';
+    }).join('');
+    var listHtml = '<div class="dotplot-list">'+listRows+'</div>';
+
+    return summaryHtml
+      + '<div class="dotplot-svg-wrap">' + svg + '</div>'
+      + listHtml;
+  }
+
+  function renderTrendCompareCard(opts){
+    var current = opts.current, previous = opts.previous, months = opts.months,
+        target = opts.target, suffix = opts.suffix || '%', title = opts.title,
+        subtitle = opts.subtitle || '';
+    var w = 700, h = 260, padL = 50, padR = 30, padT = 30, padB = 40;
+    var allVals = current.concat(previous).concat(target!=null?[target]:[]);
+    var min = Math.min.apply(null, allVals), max = Math.max.apply(null, allVals);
+    var span = max - min || 1;
+    min = Math.floor((min - span*0.15)/5)*5; max = Math.ceil((max + span*0.15)/5)*5;
+    var innerW = w - padL - padR, innerH = h - padT - padB;
+    var xs = function(i){ return padL + (current.length===1 ? innerW/2 : innerW * i / (current.length-1)); };
+    var ys = function(v){ return padT + innerH - innerH * (v - min) / (max - min); };
+
+    var latest = current[current.length-1], latestPrev = previous[previous.length-1];
+    var delta = latest - latestPrev;
+    var deltaDir = delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat';
+    var deltaColor = deltaDir==='up' ? 'var(--success)' : deltaDir==='down' ? '#C24A1F' : 'var(--muted-fg)';
+    var deltaArrow = deltaDir==='up' ? '&#8593;' : deltaDir==='down' ? '&#8595;' : '&#8212;';
+
+    var html = '<div class="card" style="padding:24px; margin-bottom:28px;">';
+    html += '<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom:4px;">';
+    html += '<div><div class="sc-label" style="margin-bottom:6px;">'+esc(title)+'</div>'
+      + '<div style="display:flex; align-items:baseline; gap:10px;">'
+      +   '<span style="font-size:34px; font-weight:700; color:var(--fg);">'+latest+suffix+'</span>'
+      +   '<span style="font-size:13.5px; font-weight:700; color:'+deltaColor+';">'+deltaArrow+' '+Math.abs(delta)+suffix+' vs last term</span>'
+      + '</div>'
+      + '<div style="font-size:12.5px; color:var(--muted-fg); margin-top:2px;">'+esc(subtitle)+'</div>'
+      + '</div>';
+    html += '<div style="display:flex; gap:16px; font-size:12px; color:var(--muted-fg); flex-wrap:wrap;">'
+      + '<span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:2px; background:#2440A0; display:inline-block;"></span>This term</span>'
+      + '<span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:2px; background:#B8BCCC; display:inline-block;"></span>Last term</span>'
+      + (target!=null ? '<span style="display:flex; align-items:center; gap:6px;"><span style="width:12px; height:2px; background:#9CA3AF; display:inline-block;"></span>Target ('+target+suffix+')</span>' : '')
+      + '</div></div>';
+
+    var svg = '<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+esc(title)+', this term vs last term">';
+    for(var g=0; g<=4; g++){
+      var gv = min + (max-min)*g/4;
+      var gy = ys(gv).toFixed(1);
+      svg += '<line x1="'+padL+'" y1="'+gy+'" x2="'+(padL+innerW)+'" y2="'+gy+'" stroke="#EEEFF3" stroke-width="1"/>';
+      svg += '<text x="'+(padL-10)+'" y="'+(parseFloat(gy)+4)+'" font-size="11" fill="#8A8FA3" text-anchor="end">'+Math.round(gv)+suffix+'</text>';
+    }
+    if(target != null){
+      var ty = ys(target).toFixed(1);
+      svg += '<line x1="'+padL+'" y1="'+ty+'" x2="'+(padL+innerW)+'" y2="'+ty+'" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="5,4"/>';
+    }
+    var prevLine = previous.map(function(v,i){ return (i?'L':'M')+xs(i).toFixed(1)+' '+ys(v).toFixed(1); }).join(' ');
+    svg += '<path d="'+prevLine+'" fill="none" stroke="#B8BCCC" stroke-width="2" stroke-dasharray="4,4"/>';
+    previous.forEach(function(v,i){ svg += '<circle cx="'+xs(i).toFixed(1)+'" cy="'+ys(v).toFixed(1)+'" r="4" fill="#B8BCCC" stroke="white" stroke-width="2"><title>Last term '+esc(months[i])+': '+v+suffix+'</title></circle>'; });
+    var curLine = current.map(function(v,i){ return (i?'L':'M')+xs(i).toFixed(1)+' '+ys(v).toFixed(1); }).join(' ');
+    var curArea = 'M'+xs(0).toFixed(1)+' '+(padT+innerH)+' '+current.map(function(v,i){ return 'L'+xs(i).toFixed(1)+' '+ys(v).toFixed(1); }).join(' ')+' L'+xs(current.length-1).toFixed(1)+' '+(padT+innerH)+' Z';
+    svg += '<path d="'+curArea+'" fill="#2440A0" fill-opacity="0.10" stroke="none"/>';
+    svg += '<path d="'+curLine+'" fill="none" stroke="#2440A0" stroke-width="2.5"/>';
+    current.forEach(function(v,i){
+      var px = xs(i).toFixed(1), py = ys(v).toFixed(1);
+      svg += '<circle cx="'+px+'" cy="'+py+'" r="5" fill="#2440A0" stroke="white" stroke-width="2"><title>'+esc(months[i])+': '+v+suffix+'</title></circle>';
+      svg += '<text x="'+px+'" y="'+(parseFloat(py)-12)+'" font-size="11" font-weight="700" fill="var(--fg)" text-anchor="middle">'+v+suffix+'</text>';
+      svg += '<text x="'+px+'" y="'+(h-14)+'" font-size="11.5" font-weight="600" fill="#6B7080" text-anchor="middle">'+esc(months[i])+'</text>';
+    });
+    svg += '</svg>';
+    html += svg + '</div>';
+    return html;
   }
 
   function allTeachersFlat(){
@@ -1562,52 +2021,192 @@
     return flags;
   }
 
+  // Progress ring for the DEO hero row. Center text is passed in so a count
+  // ring shows "17/23" and a percent ring shows "62%" -- never both.
+  function svgRing(pct, color, centerText){
+    var r = 36, c = 2*Math.PI*r, p = Math.max(0, Math.min(100, pct));
+    return '<svg viewBox="0 0 88 88" style="width:88px;height:88px;" role="img" aria-label="'+esc(centerText)+'">'
+      + '<circle cx="44" cy="44" r="'+r+'" fill="none" stroke="#EEF0F6" stroke-width="10"/>'
+      + '<circle cx="44" cy="44" r="'+r+'" fill="none" stroke="'+color+'" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+(c*p/100).toFixed(1)+' '+c.toFixed(1)+'" transform="rotate(-90 44 44)"/>'
+      + '<text x="44" y="50" text-anchor="middle" font-size="18" font-weight="600" fill="#1D1F24">'+esc(centerText)+'</text>'
+      + '</svg>';
+  }
+  function shortMarkaz(m){ return m.replace(/\s*\(Female\)/,' (F)').replace(/\s*\(Male\)/,' (M)'); }
+
+  // Teacher journey funnel -- REAL numbers, RUMI_DB, sed_punjab teachers,
+  // test users excluded, 7 Sep - 7 Oct 2026. Two tracks: what teachers do on
+  // their own (nested), and AEO support (starts from the full roster, since a
+  // teacher can be observed without planning or coaching first).
+  var DEO_FUNNEL = { roster:1496, planning:685, planningAndCoaching:485, observed:224, debriefed:128 };
+  // REAL: leader observations done by Rawalpindi AEOs (aeo_region='pindi'),
+  // test teachers excluded. allTime = since observations started in Rumi
+  // (late July 2026); thisMonth = 7 Sep - 7 Oct 2026.
+  var DEO_OBSERVATIONS = { allTime:273, thisMonth:226 };
+  // REAL: top school per markaz = highest average HOTS score on teachers'
+  // self-recorded lessons, 7 Sep - 7 Oct 2026, schools with 5+ scored
+  // lessons only. School list = the AEO's July assignment (leader_schools).
+  // [school, HOTS %, scored lessons]. Chakri (F) has no schools assigned.
+  var DEO_TOP_SCHOOL = {
+    'aeo-adyala':['GGES Dhoke Kala Khan',58.0,12], 'aeo-adyalamale':['GPS Khatana',64.6,50],
+    'aeo-pirwadhai':['GGES Murree Road Rawalpindi',59.5,57], 'aeo-sadarberoni':['GMPS Gurbal',65.0,5],
+    'aeo-rwpcantt':['GPS Liaqat Model',67.0,7], 'aeo-bassali':['GMPS Saffair',71.1,14],
+    'aeo-chakbelikhan':['GMPS Jhangi Daim',58.3,26], 'aeo-bassalimale':['GPS Ghroli',61.3,50],
+    'aeo-chaklala':['GPS Chaklala Rawalpindi',60.0,39], 'aeo-chakrimale':['GBPS Dahri',57.5,5],
+    'aeo-chountrafemale':['GGES Salmoon',60.5,45], 'aeo-chountramale':['GES Thalla Khurd',62.6,34],
+    'aeo-jathahathialfemale':['GGPS Dhudian',67.0,7], 'aeo-jathahathialmale':['GES Kuri Khuda Baksh',64.9,7],
+    'aeo-kolianhameed':['GMPS Choora',68.8,8], 'aeo-lodhran':['GGPS Chatro',62.5,12],
+    'aeo-pirwadhaimale':['GPS Hamidia',60.0,5], 'aeo-raikamaira':['GGPS Raika Maira',59.4,25],
+    'aeo-rwpcanttfemale':['GGES No. 2 Siham',63.0,19], 'aeo-shakrial':['GPS Jhangir Abad Said Gul Town',57.4,7],
+    'aeo-sihal':['GGES Mujahid',56.5,17], 'aeo-baggasheikhan':['GMPS Pial',64.7,15]
+  };
+  function renderDeoFunnel(){
+    var f = DEO_FUNNEL, R = f.roster;
+    function fmtN(n){ return n.toLocaleString('en-US'); }
+    function stage(name, n, prev, color){
+      var w = n / R * 100, inside = w > 14;
+      return '<div class="fn-stage"><div class="fn-name">'+name+'</div>'
+        + '<div class="fn-track" title="'+name+': '+fmtN(n)+'"><div class="fn-fill" style="width:'+w.toFixed(1)+'%;background:'+color+'">'+(inside?fmtN(n):'')+'</div>'
+        + '<span class="fn-pct" style="left:'+w.toFixed(1)+'%">'+(inside?'':'<b style="color:var(--fg)">'+fmtN(n)+'</b> &middot; ')+(prev?Math.round(n/prev*100)+'%':'')+'</span></div></div>';
+    }
+    function drop(n, text){ return '<div class="fn-drop"><span><b>'+fmtN(n)+'</b> '+text+'</span></div>'; }
+    return '<div class="card viz-card"><div class="viz-title">Teacher journey &middot; last 30 days</div>'
+      + '<div class="fn-sep">Teachers</div>'
+      + stage('On the roster', R, null, '#2440A0')
+      + drop(R - f.planning, 'not planning yet')
+      + stage('Planning lessons', f.planning, R, '#2440A0')
+      + drop(f.planning - f.planningAndCoaching, 'not coaching yet')
+      + stage('Also coaching', f.planningAndCoaching, f.planning, '#4A63C2')
+      + '<div class="fn-sep">AEO support</div>'
+      + stage('Observed', f.observed, R, '#0E1F4C')
+      + drop(f.observed - f.debriefed, 'debrief waiting')
+      + stage('Debriefed', f.debriefed, f.observed, '#3B4A72')
+      + '</div>';
+  }
+
+  // REAL: Top AEOs by completed observations (observed AND debriefed,
+  // debrief_status='done'), Rawalpindi AEOs, 7 Sep - 7 Oct 2026. Only AEOs
+  // that make the top 5 (ties included) are listed; nobody is ranked last.
+  // [name, markaz, observations, debriefed, schools observed, schools with teachers]
+  var DEO_AEO_ACTIVITY = [
+    ['AEO Adyala (M)','Adyala (M)',28,28,11,11],
+    ['AEO Shakrial (M)','Shakrial (M)',19,14,10,12],
+    ['AEO Jatha Hathial (M)','Jatha Hathial (M)',10,10,7,10],
+    ['AEO Chountra (M)','Chountra (M)',9,8,4,8],
+    ['AEO Jatha Hathial (F)','Jatha Hathial (F)',9,8,6,13],
+    ['AEO Lodhran (F)','Lodhran (F)',13,8,7,13]
+  ];
+  function renderDeoLeaderboard(){
+    var rows = DEO_AEO_ACTIVITY.map(function(r){ return {name:r[0], markaz:r[1], obs:r[2], done:r[3], seen:r[4], schools:r[5]}; })
+      .sort(function(a,b){ return b.done - a.done; });
+    rows.forEach(function(r){ r.rank = 1 + rows.filter(function(x){ return x.done > r.done; }).length; });
+    var top = rows.filter(function(r){ return r.rank <= 5; });
+    var max = top[0].done;
+    var tieCount = {}; top.forEach(function(r){ tieCount[r.rank] = (tieCount[r.rank]||0) + 1; });
+    var list = top.map(function(r){
+      var medal = r.rank <= 3 ? 'r'+r.rank : 'rn';
+      var tip = '<div class="tip" role="tooltip">'
+        + '<div class="tip-title">'+esc(r.name)+'</div>'
+        + '<div class="tip-row"><span>Observations</span><b>'+r.obs+'</b></div>'
+        + '<div class="tip-row"><span>Debriefed</span><b>'+r.done+'</b></div>'
+        + '<div class="tip-row"><span>Debrief rate</span><b>'+Math.round(r.done/r.obs*100)+'%</b></div>'
+        + '<div class="tip-row"><span>Schools observed</span><b>'+r.seen+' of '+r.schools+'</b></div>'
+        + '</div>';
+      return '<div class="lb-row'+(r.rank===1?' top1':'')+'" tabindex="0" aria-label="'+(tieCount[r.rank]>1?'Joint ':'')+'rank '+r.rank+': '+esc(r.name)+', '+r.done+' completed observations">'
+        + '<div class="lb-medal '+medal+'" title="'+(tieCount[r.rank]>1?'Joint ':'')+'#'+r.rank+'">'+r.rank+'</div>'
+        + '<div class="lb-avatar" aria-hidden="true">'+esc(initials(r.name).toUpperCase())+'</div>'
+        + '<div class="lb-who"><div class="nm">'+esc(r.name)+'</div><div class="mk">'+esc(r.markaz)+'</div></div>'
+        + '<div class="lb-bar"><span style="width:'+(r.done/max*100).toFixed(1)+'%"></span></div>'
+        + '<div class="lb-count">'+r.done+'</div>'
+        + tip + '</div>';
+    }).join('');
+    return '<div class="card viz-card"><div class="viz-title">Top AEOs this month</div>'
+      + '<div class="lb-sub">Completed observations (observed and debriefed), last 30 days</div>'
+      + '<div class="lb-list">'+list+'</div></div>';
+  }
+
+  // DEO = one visual page, limited visibility: no Schools/Teachers tabs, no
+  // AEO roster, no drill-down. Charts carry the page; text is titles only.
   function renderDeoDistrict(){
     var stats = computeDeoDistrictStats();
-    var aeos = stats.aeos;
-    var flags = computeDeoAttention();
+    var aeos = stats.aeos, n = aeos.length;
+    var schools = aeos.reduce(function(a,x){return a+x.schools;},0);
+    var onTrack = aeos.filter(function(a){ return a.coveragePct >= 60; }).length;
 
-    var html = '';
-    html += crumbs();
-    html += '<div class="page-head"><div>'
-      +   '<h1>My District</h1>'
-      +   '<p>'+esc(DEO_DISTRICT.name)+' — how your markaz are doing as a whole, and where the district needs a decision from you. Not a ranking of AEOs.</p>'
-      + '</div></div>';
+    var html = crumbs();
+    html += '<div class="page-head"><div><h1>My District</h1><p>'+esc(DEO_DISTRICT.name)+' &middot; this term</p></div></div>';
 
-    html += '<div class="stats k4">'
-      + '<div class="stat-card accent-primary"><div class="label">District DC average</div><div class="value">'+stats.districtDcAvg+'% '+trendHtml(stats.dcTrend)+'</div><div class="sub">across all markaz</div></div>'
-      + '<div class="stat-card accent-primary"><div class="label">Visits this term</div><div class="value">'+stats.visitsThisTerm+'</div><div class="sub">raw HOTS observation count, all markaz</div></div>'
-      + '<div class="stat-card accent-primary"><div class="label">Coverage this term</div><div class="value">'+stats.coverageAvg+'%</div><div class="sub">of the 2-visits-per-school-per-month target</div></div>'
-      + '<div class="stat-card accent-primary"><div class="label">Range across markaz</div><div class="value">'+stats.range.low+'%&ndash;'+stats.range.high+'%</div><div class="sub">lowest to highest AEO</div></div>'
-      + '<div class="stat-card accent-warning"><div class="label">AEOs needing support</div><div class="value">'+stats.aeosNeedingSupport+'</div><div class="sub">below 60% coverage</div></div>'
+    // Hero: one plain count + three rings
+    html += '<div class="ring-row">'
+      + '<div class="ring-card"><div class="big-num">'+schools+'</div><div class="ring-label">Schools</div></div>'
+      + '<div class="ring-card">'+svgRing(stats.coverageAvg, coverageGradientColor(stats.coverageAvg,60,85), stats.coverageAvg+'%')+'<div class="ring-label">Visit coverage</div><div class="ring-sub">Visits this term &divide; (schools &times; 2) &times; 100</div></div>'
+      + '<div class="ring-card">'+svgRing(onTrack/n*100, '#2440A0', onTrack+'/'+n)+'<div class="ring-label">AEOs on track</div></div>'
+      + '<div class="ring-card"><div class="big-num">'+DEO_OBSERVATIONS.allTime.toLocaleString('en-US')+'</div><div class="ring-label">Observations, all time</div></div>'
+      + '<div class="ring-card"><div class="big-num">'+DEO_OBSERVATIONS.thisMonth.toLocaleString('en-US')+'</div><div class="ring-label">Observations this month</div></div>'
       + '</div>';
 
-    html += '<div class="card" style="padding:22px; margin-bottom:28px;">'
-      + '<div class="sc-label" style="margin-bottom:4px;">District DC trend</div>'
-      + '<div style="font-size:12.5px; color:var(--muted-fg); margin-bottom:14px;">Averaged across all markaz, same 4-month window as everywhere else in this prototype</div>'
-      + svgSpark(stats.dcTrend, 320, 84)
+    html += renderDeoFunnel();
+    html += renderDeoLeaderboard();
+
+    var trendMonths = monthNamesTrailing(stats.dcTrend.length);
+    var lastTermTrend = stats.dcTrend.map(function(v,i){ return v + (3 - i); });
+    html += renderTrendCompareCard({ title:'DC score', subtitle:'', current:stats.dcTrend, previous:lastTermTrend, months:trendMonths, target:70, suffix:'%' });
+
+    // Coverage by markaz: sorted gradient bars, two columns
+    html += '<div class="card viz-card"><div class="viz-title">Visit coverage by markaz</div>'
+      + '<div class="lb-sub">Visits this term &divide; (schools &times; 2 visits per month) &times; 100</div>'
+      + '<div class="viz-legend"><span><i style="background:rgb(220,38,38)"></i>Low</span><span><i style="background:rgb(245,158,11)"></i>Middle</span><span><i style="background:rgb(34,197,94)"></i>High</span><span>&#8942; 60% target</span></div>'
+      + svgBarChartTwoCol(aeos.map(function(a){return {label:shortMarkaz(a.markaz), value:a.coveragePct};}), {threshold:60, suffix:'%', ariaLabel:'Visit coverage by markaz', gradient:true, gradientLow:60, gradientHigh:85})
       + '</div>';
 
-    html += flags.length ? renderFlagCards(flags) : '';
-
-    html += '<div class="section" style="margin-top:32px;"><div class="section-head"><h2>Markaz</h2><span class="hint">Alphabetical, not ranked</span></div>';
-    html += '<div class="card"><div class="status-list">';
-    aeos.forEach(function(a){
-      var clickAttr = a.drillable ? ' data-goto-aeo-drill="1"' : ' data-goto-stub="'+esc(a.name+' — '+a.markaz)+'"';
-      var pill = a.coveragePct>=60 ? '<span class="status-pill good"><span class="dot"></span>On track</span>' : '<span class="status-pill pending"><span class="dot"></span>Needs attention</span>';
-      var unclearNote = a.aeoAssignmentUnclear ? '<div class="sc-sub" style="color:var(--warning);">No matching AEO-role record found</div>' : '';
-      html += '<div class="status-card"'+clickAttr+'>'
-        + '<div><div class="sc-title">'+esc(a.name)+'<span class="sep">&middot;</span><span class="markaz">'+esc(a.markaz)+'</span></div>'
-        + '<div class="sc-sub"><b>'+a.schools+'</b> schools &nbsp;&middot;&nbsp; <b>'+a.teachers+'</b> teachers &nbsp;&middot;&nbsp; <b>'+a.coveragePct+'%</b> coverage &nbsp;&middot;&nbsp; <b>'+a.dcAvg+'%</b> DC avg</div>'
-        + unclearNote
-        + '</div>'
-        + pill
+    // DC score by markaz: band bar (the distribution) + tile mosaic (each markaz)
+    var bandOf = function(v){ return v >= 75 ? 'high' : v >= 60 ? 'mid' : 'low'; };
+    var counts = {low:0, mid:0, high:0};
+    aeos.forEach(function(a){ counts[bandOf(a.dcAvg)]++; });
+    var seg = function(k){ return counts[k] ? '<span class="band-'+k+'" style="flex:'+counts[k]+'" title="'+counts[k]+' markaz">'+counts[k]+'</span>' : ''; };
+    var tiles = aeos.slice().sort(function(a,b){ return b.dcAvg - a.dcAvg; }).map(function(a){
+      var t = netTrend(a.dcTrend);
+      var arrow = t.dir==='up' ? '&#9650;' : t.dir==='down' ? '&#9660;' : '&#8212;';
+      var dirWord = t.dir==='up' ? 'Rising' : t.dir==='down' ? 'Falling' : 'Flat';
+      var tip = '<div class="tip" role="tooltip">'
+        + '<div class="tip-title">'+esc(a.markaz)+'</div>'
+        + (function(){ var ts = DEO_TOP_SCHOOL[a.id];
+            return ts
+              ? '<div class="tip-top"><span class="star" aria-hidden="true">&#9733;</span><div><div class="lbl">Top school</div><div class="nm">'+esc(ts[0])+'</div><div class="sub">'+ts[1]+'% HOTS &middot; '+ts[2]+' lessons</div></div></div>'
+              : '<div class="tip-top"><span class="star" aria-hidden="true">&#9734;</span><div><div class="lbl">Top school</div><div class="sub">No schools assigned yet</div></div></div>';
+          })()
+        + '<div class="tip-row"><span>DC score</span><b>'+a.dcAvg+'% &middot; '+dirWord+'</b></div>'
+        + '<div class="tip-row"><span>Visit coverage</span><b>'+a.coveragePct+'%</b></div>'
+        + '<div class="tip-row"><span>Visits this term</span><b>'+a.visitsThisTerm+' of '+(a.schools*2)+'</b></div>'
+        + '<div class="tip-row"><span>Schools</span><b>'+a.schools+'</b></div>'
+        + '<div class="tip-row"><span>Teachers</span><b>'+a.teachers+'</b></div>'
+        + '<div class="tip-spark"><div class="sc-label">DC score, last '+a.dcTrend.length+' months</div>'+svgSpark(a.dcTrend, 190, 36)+'</div>'
         + '</div>';
-    });
-    html += '</div></div></div>';
+      return '<div class="tile band-'+bandOf(a.dcAvg)+'" tabindex="0" aria-label="'+esc(a.markaz)+': DC score '+a.dcAvg+'%">'
+        + '<div class="t-name">'+esc(shortMarkaz(a.markaz))+'</div>'
+        + '<div class="t-val">'+a.dcAvg+'%<span class="t-arrow" aria-hidden="true">'+arrow+'</span></div>'
+        + tip + '</div>';
+    }).join('');
+    html += '<div class="card viz-card"><div class="viz-title">DC score by markaz</div>'
+      + '<div class="band-bar" role="img" aria-label="Markaz by DC score band">'+seg('low')+seg('mid')+seg('high')+'</div>'
+      + '<div class="viz-legend"><span><i class="band-low"></i>Below 60%</span><span><i class="band-mid"></i>60&ndash;74%</span><span><i class="band-high"></i>75% and above</span><span>&#9650;&#9660; this term&rsquo;s direction</span></div>'
+      + '<div class="mosaic">'+tiles+'</div></div>';
 
-    html += '<div class="proto-note"><b>Prototype note:</b> 5 of Rawalpindi district’s 16 markaz are grounded in real TaleemHub data — school names, EMIS numbers and teacher headcounts for Adyala (drillable), Rawalpindi Cantt, Bassali, Chak Beli Khan and Shakrial are a real, live roster verified against TaleemHub_DB. Adyala’s coverage/trend/connectivity are additionally derived from Sadia Iqbal’s actual HOTS submissions. Performance numbers, AEO names on the other 4 markaz, and individual teachers remain fictional — no real names sit next to invented scores. Shakrial has real school data but no matching AEO-role record in TaleemHub, so it’s flagged "AEO unassigned" rather than inventing one. Coverage is calculated against the confirmed real cadence of 2 visits per school per month. The remaining 11 markaz aren’t modeled — this is a representative sample, not the full district. No individual teacher or single-school data appears on this screen by default — drilling into a markaz is the only way to reach that level.</div>';
+    html += '<div class="proto-note"><b>Prototype:</b> the observation counts, teacher journey, top AEOs and each markaz&rsquo;s top school use real RUMI_DB numbers (7 Sep &ndash; 7 Oct 2026). Markaz names are real; AEO names are hidden in this public copy; every other number on this page is illustrative.</div>';
     root.innerHTML = html;
+
+    // Open the markaz card toward the side with room (left/right, and above
+    // the tile when there isn't space below), so it never runs off-screen.
+    root.querySelectorAll('.mosaic .tile, .lb-row').forEach(function(tile){
+      function place(){
+        var r = tile.getBoundingClientRect();
+        var tipEl = tile.querySelector('.tip');
+        var tipH = (tipEl && tipEl.offsetHeight) || 300;
+        tile.classList.toggle('tip-right', r.left + 230 > window.innerWidth);
+        tile.classList.toggle('tip-up', r.bottom + tipH + 16 > window.innerHeight && r.top - tipH - 16 > 0);
+      }
+      tile.addEventListener('mouseenter', place);
+      tile.addEventListener('focus', place);
+    });
   }
 
   // Every flag on My District links here — the numbers behind the claim,
