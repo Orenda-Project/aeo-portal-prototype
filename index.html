@@ -244,6 +244,15 @@
   .ring-card{ background:var(--bg); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-soft);
     padding:16px; display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; }
   .ring-card .ring-label{ font-size:12px; font-weight:600; color:var(--muted-fg); text-transform:uppercase; letter-spacing:.5px; }
+  .ring-card{ position:relative; }
+  .ring-card.clickable, .ring-card.has-tip{ cursor:pointer; outline:none; transition:box-shadow .15s ease; }
+  .ring-card.clickable:hover, .ring-card.has-tip:hover, .ring-card.clickable:focus, .ring-card.has-tip:focus{ box-shadow:var(--shadow-medium), 0 0 0 2px var(--primary-light); }
+  .ring-card .tip{ display:none; position:absolute; top:calc(100% + 8px); left:0; z-index:15; width:270px; max-height:320px; overflow-y:auto;
+    background:var(--bg); color:var(--fg); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-medium); padding:14px; text-align:left; cursor:default; }
+  .ring-card.tip-right .tip{ left:auto; right:0; }
+  .ring-card.tip-up .tip{ top:auto; bottom:calc(100% + 8px); }
+  .ring-card.has-tip:hover .tip, .ring-card.has-tip:focus .tip{ display:block; }
+  #deo-coverage-chart{ scroll-margin-top:84px; }
   .ring-card .ring-sub{ font-size:11px; color:var(--muted-fg); line-height:1.4; margin-top:-4px; }
   .ring-card .big-num{ font-size:40px; font-weight:300; line-height:88px; height:88px; font-variant-numeric:tabular-nums; color:var(--primary); }
   @media (max-width:900px){ .ring-row{ grid-template-columns:repeat(2,1fr); } .ring-row .ring-card:last-child{ grid-column:span 2; } }
@@ -1085,81 +1094,81 @@
     aeos:[
       {id:'aeo-adyala', name:'AEO Adyala (F)', markaz:'Adyala', drillable:true,
         schools:SCHOOLS.length, teachers:SCHOOLS.reduce(function(a,s){return a+s.teacherCount;},0),
-        dcAvg:null, lpTotal:null, due:null, visitsThisTerm:null, lastActivityDays:null, dcTrend:null, connectivityIssueSchools:null},
+        dcAvg:null, lpTotal:null, due:null, visitsThisTerm:null, debriefed:null, lastActivityDays:null, dcTrend:null, connectivityIssueSchools:null},
       {id:'aeo-adyalamale', name:'AEO Adyala (M)', markaz:'Adyala (Male)', drillable:false,
         schools:7, teachers:31, dcAvg:64, lpTotal:29, due:5,
-        visitsThisTerm:9, lastActivityDays:17, dcTrend:[61,63,63,64], connectivityIssueSchools:1},
+        visitsThisTerm:9, debriefed:8, lastActivityDays:17, dcTrend:[61,63,63,64], connectivityIssueSchools:1},
       {id:'aeo-pirwadhai', name:'AEO Pir Wadhai (F)', markaz:'Pir Wadhai (Female)', drillable:false,
         schools:6, teachers:38, dcAvg:71, lpTotal:44, due:9,
-        visitsThisTerm:7, lastActivityDays:12, dcTrend:[74,72,71,71], connectivityIssueSchools:2},
+        visitsThisTerm:7, debriefed:4, lastActivityDays:12, dcTrend:[74,72,71,71], connectivityIssueSchools:2},
       {id:'aeo-sadarberoni', name:'AEO Sadar Beroni (F)', markaz:'Sadar Beroni (Female)', drillable:false,
         schools:8, teachers:44, dcAvg:65, lpTotal:57, due:14,
-        visitsThisTerm:6, lastActivityDays:26, dcTrend:[70,68,66,65], connectivityIssueSchools:3},
+        visitsThisTerm:6, debriefed:5, lastActivityDays:26, dcTrend:[70,68,66,65], connectivityIssueSchools:3},
       // Real AEO account from RUMI_DB (role='aeo', organization='sed_punjab').
       // Performance numbers (schools, teachers, dcAvg, visits, trend,
       // connectivity) are still illustrative -- same "real identity, fictional
       // performance" pattern as Adyala, TaleemHub is no longer a source at all.
       {id:'aeo-rwpcantt', name:'AEO RWP Cantt (M)', markaz:'RWP Cantt (Male)', drillable:false,
         schools:11, teachers:53, dcAvg:69, lpTotal:52, due:11,
-        visitsThisTerm:14, lastActivityDays:15, dcTrend:[71,70,69,69], connectivityIssueSchools:1},
+        visitsThisTerm:14, debriefed:7, lastActivityDays:15, dcTrend:[71,70,69,69], connectivityIssueSchools:1},
       {id:'aeo-bassali', name:'AEO Bassali (F)', markaz:'Bassali (Female)', drillable:false,
         schools:13, teachers:52, dcAvg:73, lpTotal:60, due:10,
-        visitsThisTerm:16, lastActivityDays:9, dcTrend:[70,71,72,73], connectivityIssueSchools:2},
+        visitsThisTerm:16, debriefed:14, lastActivityDays:9, dcTrend:[70,71,72,73], connectivityIssueSchools:2},
       {id:'aeo-chakbelikhan', name:'AEO Chak Beli Khan (F)', markaz:'Chak Beli Khan (Female)', drillable:false,
         schools:8, teachers:20, dcAvg:60, lpTotal:22, due:6,
-        visitsThisTerm:10, lastActivityDays:20, dcTrend:[66,64,62,60], connectivityIssueSchools:2},
+        visitsThisTerm:10, debriefed:7, lastActivityDays:20, dcTrend:[66,64,62,60], connectivityIssueSchools:2},
       // Real AEO account from RUMI_DB (role='aeo', organization='sed_punjab').
       {id:'aeo-chakri', name:'AEO Chakri (F)', markaz:'Chakri (Female)', drillable:false,
         schools:8, teachers:29, dcAvg:58, lpTotal:24, due:7,
-        visitsThisTerm:7, lastActivityDays:31, dcTrend:[64,62,60,58], connectivityIssueSchools:1},
+        visitsThisTerm:7, debriefed:7, lastActivityDays:31, dcTrend:[64,62,60,58], connectivityIssueSchools:1},
       // 15 more real AEOs from RUMI_DB (role='aeo', aeo_region='pindi',
       // non-test) -- fuller sample per the 23-real-markaz count found live.
       // Performance numbers illustrative, same rule as every stub above.
       {id:'aeo-bassalimale', name:'AEO Bassali (M)', markaz:'Bassali (Male)', drillable:false,
         schools:9, teachers:36, dcAvg:80, lpTotal:41, due:6,
-        visitsThisTerm:10, lastActivityDays:14, dcTrend:[84,83,81,80], connectivityIssueSchools:2},
+        visitsThisTerm:10, debriefed:6, lastActivityDays:14, dcTrend:[84,83,81,80], connectivityIssueSchools:2},
       {id:'aeo-chaklala', name:'AEO Chaklala (M)', markaz:'Chaklala (Male)', drillable:false,
         schools:7, teachers:21, dcAvg:81, lpTotal:25, due:5,
-        visitsThisTerm:5, lastActivityDays:24, dcTrend:[82,82,81,81], connectivityIssueSchools:2},
+        visitsThisTerm:5, debriefed:4, lastActivityDays:24, dcTrend:[82,82,81,81], connectivityIssueSchools:2},
       {id:'aeo-chakrimale', name:'AEO Chakri (M)', markaz:'Chakri (Male)', drillable:false,
         schools:3, teachers:12, dcAvg:79, lpTotal:8, due:3,
-        visitsThisTerm:2, lastActivityDays:14, dcTrend:[76,77,78,79], connectivityIssueSchools:0},
+        visitsThisTerm:2, debriefed:1, lastActivityDays:14, dcTrend:[76,77,78,79], connectivityIssueSchools:0},
       {id:'aeo-chountrafemale', name:'AEO Chountra (F)', markaz:'Chountra (Female)', drillable:false,
         schools:10, teachers:50, dcAvg:49, lpTotal:37, due:12,
-        visitsThisTerm:11, lastActivityDays:36, dcTrend:[48,48,49,49], connectivityIssueSchools:1},
+        visitsThisTerm:11, debriefed:5, lastActivityDays:36, dcTrend:[48,48,49,49], connectivityIssueSchools:1},
       {id:'aeo-chountramale', name:'AEO Chountra (M)', markaz:'Chountra (Male)', drillable:false,
         schools:3, teachers:9, dcAvg:69, lpTotal:10, due:2,
-        visitsThisTerm:4, lastActivityDays:12, dcTrend:[71,70,70,69], connectivityIssueSchools:1},
+        visitsThisTerm:4, debriefed:4, lastActivityDays:12, dcTrend:[71,70,70,69], connectivityIssueSchools:1},
       {id:'aeo-jathahathialfemale', name:'AEO Jatha Hathial (F)', markaz:'Jatha Hathial (Female)', drillable:false,
         schools:11, teachers:55, dcAvg:55, lpTotal:46, due:8,
-        visitsThisTerm:6, lastActivityDays:30, dcTrend:[57,56,56,55], connectivityIssueSchools:2},
+        visitsThisTerm:6, debriefed:5, lastActivityDays:30, dcTrend:[57,56,56,55], connectivityIssueSchools:2},
       {id:'aeo-jathahathialmale', name:'AEO Jatha Hathial (M)', markaz:'Jatha Hathial (Male)', drillable:false,
         schools:12, teachers:36, dcAvg:83, lpTotal:34, due:15,
-        visitsThisTerm:8, lastActivityDays:8, dcTrend:[82,82,83,83], connectivityIssueSchools:0},
+        visitsThisTerm:8, debriefed:4, lastActivityDays:8, dcTrend:[82,82,83,83], connectivityIssueSchools:0},
       {id:'aeo-kolianhameed', name:'AEO Kolian Hameed (F)', markaz:'Kolian Hameed (Female)', drillable:false,
         schools:7, teachers:35, dcAvg:82, lpTotal:23, due:8,
-        visitsThisTerm:11, lastActivityDays:15, dcTrend:[79,80,81,82], connectivityIssueSchools:2},
+        visitsThisTerm:11, debriefed:8, lastActivityDays:15, dcTrend:[79,80,81,82], connectivityIssueSchools:2},
       {id:'aeo-lodhran', name:'AEO Lodhran (F)', markaz:'Lodhran (Female)', drillable:false,
         schools:8, teachers:48, dcAvg:52, lpTotal:67, due:8,
-        visitsThisTerm:13, lastActivityDays:21, dcTrend:[50,51,51,52], connectivityIssueSchools:2},
+        visitsThisTerm:13, debriefed:7, lastActivityDays:21, dcTrend:[50,51,51,52], connectivityIssueSchools:2},
       {id:'aeo-pirwadhaimale', name:'AEO Pir Wadhai (M)', markaz:'Pir Wadhai (Male)', drillable:false,
         schools:8, teachers:32, dcAvg:75, lpTotal:27, due:7,
-        visitsThisTerm:12, lastActivityDays:31, dcTrend:[79,78,76,75], connectivityIssueSchools:3},
+        visitsThisTerm:12, debriefed:10, lastActivityDays:31, dcTrend:[79,78,76,75], connectivityIssueSchools:3},
       {id:'aeo-raikamaira', name:'AEO Raika Maira (F)', markaz:'Raika Maira (Female)', drillable:false,
         schools:7, teachers:35, dcAvg:59, lpTotal:24, due:7,
-        visitsThisTerm:6, lastActivityDays:35, dcTrend:[55,56,58,59], connectivityIssueSchools:3},
+        visitsThisTerm:6, debriefed:4, lastActivityDays:35, dcTrend:[55,56,58,59], connectivityIssueSchools:3},
       {id:'aeo-rwpcanttfemale', name:'AEO RWP Cantt (F)', markaz:'RWP Cantt (Female)', drillable:false,
         schools:7, teachers:42, dcAvg:52, lpTotal:58, due:4,
-        visitsThisTerm:9, lastActivityDays:31, dcTrend:[51,51,52,52], connectivityIssueSchools:1},
+        visitsThisTerm:9, debriefed:9, lastActivityDays:31, dcTrend:[51,51,52,52], connectivityIssueSchools:1},
       {id:'aeo-shakrial', name:'AEO Shakrial (M)', markaz:'Shakrial (Male)', drillable:false,
         schools:4, teachers:20, dcAvg:60, lpTotal:15, due:4,
-        visitsThisTerm:6, lastActivityDays:17, dcTrend:[59,59,60,60], connectivityIssueSchools:2},
+        visitsThisTerm:6, debriefed:4, lastActivityDays:17, dcTrend:[59,59,60,60], connectivityIssueSchools:2},
       {id:'aeo-sihal', name:'AEO Sihal (F)', markaz:'Sihal (Female)', drillable:false,
         schools:4, teachers:24, dcAvg:62, lpTotal:15, due:4,
-        visitsThisTerm:5, lastActivityDays:39, dcTrend:[59,60,61,62], connectivityIssueSchools:3},
+        visitsThisTerm:5, debriefed:4, lastActivityDays:39, dcTrend:[59,60,61,62], connectivityIssueSchools:3},
       {id:'aeo-baggasheikhan', name:'AEO Bagga Sheikhan (F)', markaz:'Bagga Sheikhan (Female)', drillable:false,
         schools:9, teachers:36, dcAvg:54, lpTotal:23, due:10,
-        visitsThisTerm:12, lastActivityDays:15, dcTrend:[52,53,53,54], connectivityIssueSchools:1},
+        visitsThisTerm:12, debriefed:8, lastActivityDays:15, dcTrend:[52,53,53,54], connectivityIssueSchools:1},
 
     ]
   };
@@ -1411,7 +1420,7 @@
       var barW = Math.max(2, xs(it.value) - labelW);
       var barColor = gradient ? coverageGradientColor(it.value, opts.gradientLow, opts.gradientHigh) : color;
       svg += '<g>'
-        + '<title>'+esc(it.label)+': '+it.value+(opts.suffix||'')+'</title>'
+        + '<title>'+esc(it.tip || (it.label+': '+it.value+(opts.suffix||'')))+'</title>'
         + '<text x="0" y="'+(y+14)+'" font-size="12" fill="#6B7280">'+esc(it.label)+'</text>'
         + '<rect x="'+labelW+'" y="'+y+'" width="'+barW.toFixed(1)+'" height="16" rx="3" fill="'+barColor+'"/>'
         + '<text x="'+(labelW+barW+8)+'" y="'+(y+13)+'" font-size="12" font-weight="600" fill="#1D1F24">'+it.value+(opts.suffix||'')+'</text>'
@@ -1958,7 +1967,7 @@
         var connectivityIssueSchools = SCHOOLS.filter(function(s){ return s.connectivity!=='Good'; }).length;
         row = {id:a.id, name:a.name, markaz:a.markaz, drillable:a.drillable, schools:a.schools, teachers:a.teachers,
           dcAvg:patchStats.dcAvg, lpTotal:patchStats.lpTotal, due:patchStats.due,
-          visitsThisTerm:visitsThisTerm, lastActivityDays:lastActivityDays, dcTrend:patchStats.dcTrend, connectivityIssueSchools:connectivityIssueSchools};
+          visitsThisTerm:visitsThisTerm, debriefed:MY_FORMS.filter(function(f){ return f.debriefStatus==='done'; }).length, lastActivityDays:lastActivityDays, dcTrend:patchStats.dcTrend, connectivityIssueSchools:connectivityIssueSchools};
       }
       row.coveragePct = Math.round(row.visitsThisTerm / (row.schools*2) * 100);
       return row;
@@ -2037,7 +2046,9 @@
   // test users excluded, 7 Sep - 7 Oct 2026. Two tracks: what teachers do on
   // their own (nested), and AEO support (starts from the full roster, since a
   // teacher can be observed without planning or coaching first).
-  var DEO_FUNNEL = { roster:1496, planning:685, planningAndCoaching:485, observed:224, debriefed:128 };
+  // coaching = teachers with 1+ completed self-coaching session (any, whether
+  // or not they also made a lesson plan) -- the planning step was dropped.
+  var DEO_FUNNEL = { roster:1496, coaching:569, observed:224, debriefed:128 };
   // REAL: leader observations done by Rawalpindi AEOs (aeo_region='pindi'),
   // test teachers excluded. allTime = since observations started in Rumi
   // (late July 2026); thisMonth = 7 Sep - 7 Oct 2026.
@@ -2072,10 +2083,8 @@
     return '<div class="card viz-card"><div class="viz-title">Teacher journey &middot; last 30 days</div>'
       + '<div class="fn-sep">Teachers</div>'
       + stage('On the roster', R, null, '#2440A0')
-      + drop(R - f.planning, 'not planning yet')
-      + stage('Planning lessons', f.planning, R, '#2440A0')
-      + drop(f.planning - f.planningAndCoaching, 'not coaching yet')
-      + stage('Also coaching', f.planningAndCoaching, f.planning, '#4A63C2')
+      + drop(R - f.coaching, 'not coaching yet')
+      + stage('Coaching themselves', f.coaching, R, '#4A63C2')
       + '<div class="fn-sep">AEO support</div>'
       + stage('Observed', f.observed, R, '#0E1F4C')
       + drop(f.observed - f.debriefed, 'debrief waiting')
@@ -2136,10 +2145,16 @@
     html += '<div class="page-head"><div><h1>My District</h1><p>'+esc(DEO_DISTRICT.name)+' &middot; this term</p></div></div>';
 
     // Hero: one plain count + three rings
+    var onTrackList = aeos.filter(function(a){ return a.coveragePct >= 60; })
+      .sort(function(a,b){ return b.coveragePct - a.coveragePct; })
+      .map(function(a){ return '<div class="tip-row"><span>'+esc(a.name)+' &middot; '+esc(shortMarkaz(a.markaz))+'</span><b>'+a.coveragePct+'%</b></div>'; }).join('');
+    var onTrackTip = '<div class="tip" role="tooltip"><div class="tip-title">On track: 60%+ observation coverage</div>'
+      + (onTrackList || '<div class="tip-row"><span>No AEOs at 60% yet</span></div>') + '</div>';
+
     html += '<div class="ring-row">'
       + '<div class="ring-card"><div class="big-num">'+schools+'</div><div class="ring-label">Schools</div></div>'
-      + '<div class="ring-card">'+svgRing(stats.coverageAvg, coverageGradientColor(stats.coverageAvg,60,85), stats.coverageAvg+'%')+'<div class="ring-label">Visit coverage</div><div class="ring-sub">Visits this term &divide; (schools &times; 2) &times; 100</div></div>'
-      + '<div class="ring-card">'+svgRing(onTrack/n*100, '#2440A0', onTrack+'/'+n)+'<div class="ring-label">AEOs on track</div></div>'
+      + '<div class="ring-card clickable" data-scroll-to="deo-coverage-chart" role="button" tabindex="0" aria-label="Observation coverage '+stats.coverageAvg+'%. Go to coverage by markaz">'+svgRing(stats.coverageAvg, coverageGradientColor(stats.coverageAvg,60,85), stats.coverageAvg+'%')+'<div class="ring-label">Observation coverage</div><div class="ring-sub">Observations this term &divide; (schools &times; 2) &times; 100</div></div>'
+      + '<div class="ring-card has-tip" tabindex="0" aria-label="'+onTrack+' of '+n+' AEOs on track. Show names">'+svgRing(onTrack/n*100, '#2440A0', onTrack+'/'+n)+'<div class="ring-label">AEOs on track</div>'+onTrackTip+'</div>'
       + '<div class="ring-card"><div class="big-num">'+DEO_OBSERVATIONS.allTime.toLocaleString('en-US')+'</div><div class="ring-label">Observations, all time</div></div>'
       + '<div class="ring-card"><div class="big-num">'+DEO_OBSERVATIONS.thisMonth.toLocaleString('en-US')+'</div><div class="ring-label">Observations this month</div></div>'
       + '</div>';
@@ -2152,10 +2167,13 @@
     html += renderTrendCompareCard({ title:'DC score', subtitle:'', current:stats.dcTrend, previous:lastTermTrend, months:trendMonths, target:70, suffix:'%' });
 
     // Coverage by markaz: sorted gradient bars, two columns
-    html += '<div class="card viz-card"><div class="viz-title">Visit coverage by markaz</div>'
-      + '<div class="lb-sub">Visits this term &divide; (schools &times; 2 visits per month) &times; 100</div>'
+    html += '<div class="card viz-card" id="deo-coverage-chart"><div class="viz-title">Observation coverage by markaz</div>'
+      + '<div class="lb-sub">Observations this term &divide; (schools &times; 2 observations per month) &times; 100</div>'
       + '<div class="viz-legend"><span><i style="background:rgb(220,38,38)"></i>Low</span><span><i style="background:rgb(245,158,11)"></i>Middle</span><span><i style="background:rgb(34,197,94)"></i>High</span><span>&#8942; 60% target</span></div>'
-      + svgBarChartTwoCol(aeos.map(function(a){return {label:shortMarkaz(a.markaz), value:a.coveragePct};}), {threshold:60, suffix:'%', ariaLabel:'Visit coverage by markaz', gradient:true, gradientLow:60, gradientHigh:85})
+      + svgBarChartTwoCol(aeos.map(function(a){
+          return {label:shortMarkaz(a.markaz), value:a.coveragePct,
+            tip: a.markaz+': '+a.coveragePct+'%\n'+a.visitsThisTerm+' of '+(a.schools*2)+' observations this term\n'+a.debriefed+' debriefed'};
+        }), {threshold:60, suffix:'%', ariaLabel:'Observation coverage by markaz', gradient:true, gradientLow:60, gradientHigh:85})
       + '</div>';
 
     // DC score by markaz: band bar (the distribution) + tile mosaic (each markaz)
@@ -2175,8 +2193,9 @@
               : '<div class="tip-top"><span class="star" aria-hidden="true">&#9734;</span><div><div class="lbl">Top school</div><div class="sub">No schools assigned yet</div></div></div>';
           })()
         + '<div class="tip-row"><span>DC score</span><b>'+a.dcAvg+'% &middot; '+dirWord+'</b></div>'
-        + '<div class="tip-row"><span>Visit coverage</span><b>'+a.coveragePct+'%</b></div>'
-        + '<div class="tip-row"><span>Visits this term</span><b>'+a.visitsThisTerm+' of '+(a.schools*2)+'</b></div>'
+        + '<div class="tip-row"><span>Observation coverage</span><b>'+a.coveragePct+'%</b></div>'
+        + '<div class="tip-row"><span>Observations this term</span><b>'+a.visitsThisTerm+' of '+(a.schools*2)+'</b></div>'
+        + '<div class="tip-row"><span>Debriefed</span><b>'+a.debriefed+'</b></div>'
         + '<div class="tip-row"><span>Schools</span><b>'+a.schools+'</b></div>'
         + '<div class="tip-row"><span>Teachers</span><b>'+a.teachers+'</b></div>'
         + '<div class="tip-spark"><div class="sc-label">DC score, last '+a.dcTrend.length+' months</div>'+svgSpark(a.dcTrend, 190, 36)+'</div>'
@@ -2196,12 +2215,24 @@
 
     // Open the markaz card toward the side with room (left/right, and above
     // the tile when there isn't space below), so it never runs off-screen.
-    root.querySelectorAll('.mosaic .tile, .lb-row').forEach(function(tile){
+    var covCard = root.querySelector('[data-scroll-to]');
+    if(covCard){
+      var goToChart = function(){
+        var target = document.getElementById(covCard.dataset.scrollTo);
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if(target) target.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block:'start'});
+      };
+      covCard.addEventListener('click', goToChart);
+      covCard.addEventListener('keydown', function(e){ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); goToChart(); } });
+    }
+
+    root.querySelectorAll('.mosaic .tile, .lb-row, .ring-card.has-tip').forEach(function(tile){
       function place(){
         var r = tile.getBoundingClientRect();
         var tipEl = tile.querySelector('.tip');
         var tipH = (tipEl && tipEl.offsetHeight) || 300;
-        tile.classList.toggle('tip-right', r.left + 230 > window.innerWidth);
+        var tipW = (tipEl && tipEl.offsetWidth) || 230;
+        tile.classList.toggle('tip-right', r.left + tipW + 10 > window.innerWidth);
         tile.classList.toggle('tip-up', r.bottom + tipH + 16 > window.innerHeight && r.top - tipH - 16 > 0);
       }
       tile.addEventListener('mouseenter', place);
